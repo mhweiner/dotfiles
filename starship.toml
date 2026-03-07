@@ -1,0 +1,5 @@
+# Starship prompt config. See https://starship.rs/config/
+# Customize below; this matches default behavior.
+
+format = "$all"
+add_newline = true
