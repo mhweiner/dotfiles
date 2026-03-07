@@ -1,0 +1,10 @@
+#!/bin/bash
+
+branch="${1:-main}"
+
+git checkout "$branch" && git pull -p
+
+gone=$(git branch -vv | grep ": gone]" | awk '{print $1}' | grep -vE '^(main|dev|master)$')
+if [ -n "$gone" ]; then
+  echo "$gone" | xargs git branch -D
+fi

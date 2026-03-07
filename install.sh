@@ -23,5 +23,10 @@ defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
 defaults write com.googlecode.iterm2 PrefsCustomFolder -string "$DOTFILES/iterm2"
 echo "  Set iTerm2 to use $DOTFILES/iterm2 for preferences"
 
+# bin (git-cleanup etc.)
+mkdir -p ~/.local/bin
+ln -sf "$DOTFILES/bin/git-cleanup" ~/.local/bin/git-cleanup
+echo "  Linked ~/.local/bin/git-cleanup"
+
 echo ""
 echo "Done. Restart iTerm2 (or open a new tab) so it picks up the preferences folder."

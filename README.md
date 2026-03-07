@@ -26,6 +26,7 @@ iTerm2, Starship, zsh. Same setup on every Mac.
 | `.zshrc` | PATH, aliases, nvm, starship init |
 | `starship.toml` | [Starship](https://starship.rs/) prompt config |
 | `iterm2/` | iTerm2 preferences (read/written by iTerm when “Load from custom folder” is set) |
+| `bin/git-cleanup` | Prune gone branches (symlinked to `~/.local/bin` by install) |
 | `install.sh` | Symlinks the above and points iTerm at this repo |
 
 ## Updating
