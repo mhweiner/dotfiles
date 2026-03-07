@@ -6,29 +6,25 @@
 
 ## 🚀 New Mac? Start here
 
-**One command** (installs Homebrew, iTerm2, Starship, nvm, clones this repo, runs install):
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/mhweiner/dotfiles/main/bootstrap.sh | bash
-```
-
-You need **Xcode Command Line Tools** first (for `git`). If you don't have them:
+**1.** Install Xcode Command Line Tools (for `git`):
 
 ```bash
 xcode-select --install
 ```
 
-Then run the one-liner above. When it's done, **quit and reopen iTerm2**.
+**2.** Clone this repo:
 
----
+```bash
+git clone https://github.com/mhweiner/dotfiles.git ~/dotfiles
+```
 
-**Or do it step by step:**
+**3.** Run the setup script (TUI — pick which tools to install):
 
-1. Xcode CLT → `xcode-select --install` · [Homebrew](https://brew.sh)
-2. Clone → `git clone https://github.com/mhweiner/dotfiles.git ~/dotfiles`
-3. Install tools → `brew install --cask iterm2` and `brew install starship` · [nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-4. Run → `~/dotfiles/install.sh`
-5. Quit and reopen iTerm2
+```bash
+~/dotfiles/bootstrap.sh
+```
+
+The menu lets you choose **iTerm2**, **Starship**, and **nvm** (space to toggle, Enter when done). It will install Homebrew and [gum](https://github.com/charmbracelet/gum) if needed, then install your selections and wire everything up. When it's done, **quit and reopen iTerm2**.
 
 That's it. You're in business. 🎉
 
@@ -44,7 +40,7 @@ That's it. You're in business. 🎉
 | `fonts/` | 0xProto Nerd Font (copied to `~/Library/Fonts` by install) |
 | `bin/git-cleanup` | Prune merged/gone branches (symlinked to `~/.local/bin`) |
 | `install.sh` | Wires everything up with symlinks and points iTerm at this repo |
-| `bootstrap.sh` | One-shot: installs Homebrew, tools, clones repo, runs install.sh (use via curl one-liner) |
+| `bootstrap.sh` | TUI setup: pick tools (iTerm2, Starship, nvm) to install, then runs install.sh |
 
 ---
 
