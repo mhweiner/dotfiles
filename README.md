@@ -1,26 +1,22 @@
 # ✨ dotfiles
 
-**iTerm2 · Starship · zsh** — same setup on every Mac. No more “wait, how did I configure that?”
+**iTerm2 · Starship · zsh** — same setup on every Mac. No more "wait, how did I configure that?"
 
 ---
 
 ## 🚀 New Mac? Start here
 
-**1.** Get the basics (if you don’t have them yet):
+**1.** Get the basics (if you don't have them yet):
 - [Xcode Command Line Tools](https://developer.apple.com/xcode/) → `xcode-select --install`
 - [Homebrew](https://brew.sh)
 
-**2.** Clone this repo and run the installer:
+**2.** Clone this repo:
 
 ```bash
 git clone https://github.com/mhweiner/dotfiles.git ~/dotfiles
 ```
 
-```bash
-~/dotfiles/install.sh
-```
-
-**3.** These are the tools I use (install what you need):
+**3.** These are the tools I use (install before running the script):
 
 **iTerm2**  
 [iterm2.com](https://iterm2.com) or:
@@ -42,13 +38,19 @@ brew install starship
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
 ```
 
-**4.** Quit and reopen iTerm2 so it picks up the preferences from `~/dotfiles/iterm2`.
+**4.** Run the install script:
 
-That’s it. You’re in business. 🎉
+```bash
+~/dotfiles/install.sh
+```
+
+**5.** Quit and reopen iTerm2 so it picks up the preferences from `~/dotfiles/iterm2`.
+
+That's it. You're in business. 🎉
 
 ---
 
-## 📦 What’s in the box
+## 📦 What's in the box
 
 | Path | What it does |
 |------|----------------|
