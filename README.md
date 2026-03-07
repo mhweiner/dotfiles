@@ -18,9 +18,15 @@ git clone https://github.com/mhweiner/dotfiles.git ~/dotfiles
 ```
 
 **3.** These are the tools I use (install what you need):
-- **iTerm2** → [iterm2.com](https://iterm2.com) or `brew install --cask iterm2`
-- **Starship** → `brew install starship`
-- **nvm** → `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash`
+
+**iTerm2**  
+[iterm2.com](https://iterm2.com) or `brew install --cask iterm2`
+
+**Starship**  
+`brew install starship`
+
+**nvm**  
+[Install script](https://github.com/nvm-sh/nvm#installing-and-updating) — or `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash`
 
 **4.** Quit and reopen iTerm2 so it picks up the preferences from `~/dotfiles/iterm2`.
 
