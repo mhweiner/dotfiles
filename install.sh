@@ -28,5 +28,12 @@ mkdir -p ~/.local/bin
 ln -sf "$DOTFILES/bin/git-cleanup" ~/.local/bin/git-cleanup
 echo "  Linked ~/.local/bin/git-cleanup"
 
+# fonts
+if [ -d "$DOTFILES/fonts" ]; then
+  mkdir -p ~/Library/Fonts
+  cp -n "$DOTFILES/fonts/"*.ttf ~/Library/Fonts/ 2>/dev/null || true
+  echo "  Installed fonts to ~/Library/Fonts"
+fi
+
 echo ""
 echo "Done. Restart iTerm2 (or open a new tab) so it picks up the preferences folder."

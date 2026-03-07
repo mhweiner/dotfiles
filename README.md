@@ -57,6 +57,7 @@ That's it. You're in business. 🎉
 | `.zshrc` | PATH, aliases, nvm, starship init |
 | `starship.toml` | [Starship](https://starship.rs/) prompt config |
 | `iterm2/` | iTerm2 preferences (auto-saved here when you change settings) |
+| `fonts/` | 0xProto Nerd Font (copied to `~/Library/Fonts` by install) |
 | `bin/git-cleanup` | Prune merged/gone branches (symlinked to `~/.local/bin`) |
 | `install.sh` | Wires everything up with symlinks and points iTerm at this repo |
 
