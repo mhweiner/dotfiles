@@ -36,11 +36,12 @@ defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
 defaults write com.googlecode.iterm2 PrefsCustomFolder -string "$DOTFILES/iterm2"
 echo "  Set iTerm2 to use $DOTFILES/iterm2 for preferences"
 
-# bin (git-cleanup etc.)
+# bin (helpers)
 mkdir -p ~/.local/bin
-ln -sf "$DOTFILES/bin/git-cleanup" ~/.local/bin/git-cleanup
-ln -sf "$DOTFILES/bin/whatismyip" ~/.local/bin/whatismyip
-echo "  Linked ~/.local/bin/git-cleanup, whatismyip"
+for f in git-cleanup whatismyip killport; do
+  [ -f "$DOTFILES/bin/$f" ] && ln -sf "$DOTFILES/bin/$f" ~/.local/bin/$f
+done
+echo "  Linked ~/.local/bin (git-cleanup, whatismyip, killport)"
 
 # fonts
 if [ -d "$DOTFILES/fonts" ]; then

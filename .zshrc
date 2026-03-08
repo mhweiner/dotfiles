@@ -7,10 +7,7 @@ export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"
 # === aliases ===
 
 alias ll='ls -lah'
-# git-cleanup, whatismyip → ~/.local/bin (via install.sh)
-
-# === helpers ===
-killport() { kill $(lsof -ti :$1); }
+# Helpers (git-cleanup, whatismyip, killport) → ~/.local/bin via install.sh
 
 # === nvm ===
 
