@@ -7,8 +7,7 @@ export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"
 # === aliases ===
 
 alias ll='ls -lah'
-alias whatismyip='curl -s https://checkip.amazonaws.com'
-# git-cleanup moved to ~/.local/bin/git-cleanup
+# git-cleanup, whatismyip → ~/.local/bin (via install.sh)
 
 # === helpers ===
 killport() { kill $(lsof -ti :$1); }

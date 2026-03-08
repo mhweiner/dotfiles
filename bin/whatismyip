@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+pub=$(curl -s --max-time 3 https://checkip.amazonaws.com 2>/dev/null) || pub="—"
+local_ip=$(ipconfig getifaddr en0 2>/dev/null) || local_ip=$(ipconfig getifaddr en1 2>/dev/null) || local_ip=$(ifconfig 2>/dev/null | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}' | head -1) || local_ip="—"
+echo ""
+echo "  🌐  Public   $pub"
+echo "  🏠  Local    $local_ip"
+echo ""
