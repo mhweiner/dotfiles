@@ -45,10 +45,34 @@ That's it. You're in business. 🎉
 
 ---
 
+## 🏠 Local overrides (`~/.zshrc.local`) — never lose your machine-specific stuff
+
+**Where it lives:** `~/.zshrc.local` (in your **home directory**). It is **not** in the repo and is **not** version-controlled.
+
+**How it’s loaded:** The repo’s `.zshrc` is symlinked to `~/.zshrc`. At the **end** of that file we have:
+
+```bash
+[ -f ~/.zshrc.local ] && . ~/.zshrc.local
+```
+
+So when zsh starts, it runs the repo’s `.zshrc` first (PATH, aliases, nvm, starship), then sources `~/.zshrc.local` if it exists. Anything in the local file overrides or adds to the repo config.
+
+**Bulletproof updates:** Put machine-specific or personal stuff **only** in `~/.zshrc.local` (extra PATH, aliases, secrets, etc.). Then you can always run:
+
+```bash
+cd ~/dotfiles && git pull && ~/dotfiles/install.sh
+```
+
+Install **never overwrites** `~/.zshrc.local` (it only creates it from the example if the file is missing). So you never lose local changes when you update. This is a common dotfiles pattern.
+
+**First time:** If you don’t have `~/.zshrc.local` yet, `install.sh` copies `zshrc.local.example` there so you have a starter. Edit it as you like.
+
+---
+
 ## 🔄 Already set up? Just pulling the latest
 
 ```bash
-cd ~/dotfiles && git pull
+cd ~/dotfiles && git pull && ~/dotfiles/install.sh
 ```
 
-You only need to run `install.sh` again on a brand-new machine.
+Safe to run anytime. Repo files get updated; `~/.zshrc.local` is never touched.
