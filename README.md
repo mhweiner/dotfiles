@@ -34,7 +34,8 @@ That's it. You're in business. 🎉
 
 | Path | What it does |
 |------|----------------|
-| `.zshrc` | PATH, aliases, nvm, starship init |
+| `.zshrc` | PATH, aliases, nvm, starship init (repo-controlled; sources `~/.zshrc.local` at the end) |
+| `zshrc.local.example` | Template for `~/.zshrc.local`. Install copies it to `~/.zshrc.local` only if missing — **edit `~/.zshrc.local` for machine-specific stuff; install never overwrites it.** |
 | `starship.toml` | [Starship](https://starship.rs/) prompt config |
 | `iterm2/` | iTerm2 preferences (auto-saved here when you change settings) |
 | `fonts/` | 0xProto Nerd Font (copied to `~/Library/Fonts` by install) |

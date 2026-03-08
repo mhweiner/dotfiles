@@ -5,13 +5,20 @@ cd "$DOTFILES"
 
 echo "Installing dotfiles from $DOTFILES"
 
-# .zshrc
+# .zshrc (repo-controlled)
 if [ -f ~/.zshrc ] && [ ! -L ~/.zshrc ]; then
   echo "  Backing up existing ~/.zshrc to ~/.zshrc.bak"
   cp ~/.zshrc ~/.zshrc.bak
 fi
 ln -sf "$DOTFILES/.zshrc" ~/.zshrc
 echo "  Linked ~/.zshrc"
+# .zshrc.local (user-owned, never overwritten)
+if [ ! -f ~/.zshrc.local ]; then
+  cp "$DOTFILES/zshrc.local.example" ~/.zshrc.local
+  echo "  Created ~/.zshrc.local (edit for local overrides)"
+else
+  echo "  ~/.zshrc.local exists (unchanged)"
+fi
 
 # starship
 mkdir -p ~/.config

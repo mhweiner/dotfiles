@@ -1,0 +1,9 @@
+# ~/.zshrc.local — local overrides
+# This file is NOT in the dotfiles repo. Edit freely; install.sh never overwrites it.
+# It is sourced at the end of .zshrc.
+
+# Example: machine-specific PATH
+# export PATH="/opt/something/bin:$PATH"
+
+# Example: extra aliases or functions
+# alias myalias='some command'

@@ -22,3 +22,6 @@ export NVM_DIR="$HOME/.nvm"
 # === starship ===
 
 eval "$(starship init zsh)"
+
+# === local overrides (not in repo, never overwritten by install) ===
+[ -f ~/.zshrc.local ] && . ~/.zshrc.local
