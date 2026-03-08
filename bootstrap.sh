@@ -72,6 +72,15 @@ if [ -n "$SELECTED" ]; then
         else
           echo "nvm already installed"
         fi
+        # Install Node (LTS) so npm is available
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        if ! command -v node &>/dev/null; then
+          echo "Installing Node (LTS)..."
+          nvm install --lts
+        else
+          echo "Node already installed ($(node -v))"
+        fi
         ;;
     esac
   done
