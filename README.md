@@ -39,9 +39,21 @@ That's it. You're in business. 🎉
 | `starship.toml` | [Starship](https://starship.rs/) prompt config |
 | `iterm2/` | iTerm2 preferences (auto-saved here when you change settings) |
 | `fonts/` | 0xProto Nerd Font (copied to `~/Library/Fonts` by install) |
-| `bin/git-cleanup` | Prune merged/gone branches (symlinked to `~/.local/bin`) |
+| `bin/` | Helper scripts (symlinked to `~/.local/bin` by install). See **Helpers** below. |
 | `install.sh` | Wires everything up with symlinks and points iTerm at this repo |
 | `bootstrap.sh` | TUI setup: pick tools (iTerm2, Starship, nvm) to install, then runs install.sh |
+
+---
+
+## Helpers (`bin/` → `~/.local/bin`)
+
+Install symlinks these into `~/.local/bin` (already on PATH in `.zshrc`). Run them from any terminal.
+
+| Command | What it does |
+|--------|----------------|
+| **`git-cleanup`** | Prune merged/gone branches. `git-cleanup` (default: main) or `git-cleanup dev`. |
+| **`whatismyip`** | Print your public IP and local IP (with emojis). |
+| **`killport <port>`** | Kill any process listening on the given port. Example: `killport 3000`. |
 
 ---
 
