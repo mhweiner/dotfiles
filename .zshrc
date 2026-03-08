@@ -24,4 +24,6 @@ export NVM_DIR="$HOME/.nvm"
 eval "$(starship init zsh)"
 
 # === local overrides (not in repo, never overwritten by install) ===
+# Source both: home dir first, then repo dir (if you keep it next to zshrc.local.example). Both are gitignored.
 [ -f ~/.zshrc.local ] && . ~/.zshrc.local
+[ -f ~/dotfiles/.zshrc.local ] && . ~/dotfiles/.zshrc.local

@@ -35,7 +35,7 @@ That's it. You're in business. 🎉
 | Path | What it does |
 |------|----------------|
 | `.zshrc` | PATH, aliases, nvm, starship init (repo-controlled; sources `~/.zshrc.local` at the end) |
-| `zshrc.local.example` | Template for `~/.zshrc.local`. Install copies it to `~/.zshrc.local` only if missing — **edit `~/.zshrc.local` for machine-specific stuff; install never overwrites it.** |
+| `zshrc.local.example` | Template for local overrides. Install copies to `~/.zshrc.local` and/or `~/dotfiles/.zshrc.local` only if missing (both gitignored / never overwritten). |
 | `starship.toml` | [Starship](https://starship.rs/) prompt config |
 | `iterm2/` | iTerm2 preferences (auto-saved here when you change settings) |
 | `fonts/` | 0xProto Nerd Font (copied to `~/Library/Fonts` by install) |
@@ -45,27 +45,31 @@ That's it. You're in business. 🎉
 
 ---
 
-## 🏠 Local overrides (`~/.zshrc.local`) — never lose your machine-specific stuff
+## 🏠 Local overrides (`.zshrc.local`) — never lose your machine-specific stuff
 
-**Where it lives:** `~/.zshrc.local` (in your **home directory**). It is **not** in the repo and is **not** version-controlled.
+**Where it can live (either or both):**
 
-**How it’s loaded:** The repo’s `.zshrc` is symlinked to `~/.zshrc`. At the **end** of that file we have:
+- **`~/.zshrc.local`** — in your home directory. Not in the repo.
+- **`~/dotfiles/.zshrc.local`** — next to `zshrc.local.example` in the repo folder. **Gitignored**, so it’s never committed even though the file sits in the repo directory.
+
+**How it’s loaded:** The repo’s `.zshrc` is symlinked to `~/.zshrc`. At the **end** it runs:
 
 ```bash
 [ -f ~/.zshrc.local ] && . ~/.zshrc.local
+[ -f ~/dotfiles/.zshrc.local ] && . ~/dotfiles/.zshrc.local
 ```
 
-So when zsh starts, it runs the repo’s `.zshrc` first (PATH, aliases, nvm, starship), then sources `~/.zshrc.local` if it exists. Anything in the local file overrides or adds to the repo config.
+So when zsh starts, it runs the repo’s `.zshrc` first, then sources both local files if they exist (home first, then dotfiles dir). Anything in either file overrides or adds to the repo config.
 
-**Bulletproof updates:** Put machine-specific or personal stuff **only** in `~/.zshrc.local` (extra PATH, aliases, secrets, etc.). Then you can always run:
+**Bulletproof updates:** Put machine-specific or personal stuff only in one or both of those local files. Then you can always run:
 
 ```bash
 cd ~/dotfiles && git pull && ~/dotfiles/install.sh
 ```
 
-Install **never overwrites** `~/.zshrc.local` (it only creates it from the example if the file is missing). So you never lose local changes when you update. This is a common dotfiles pattern.
+Install **never overwrites** either `.zshrc.local` (it only creates them from the example if missing). The repo’s `.gitignore` lists `.zshrc.local`, so even if you keep it in `~/dotfiles/`, it won’t be committed. You never lose local changes when you update.
 
-**First time:** If you don’t have `~/.zshrc.local` yet, `install.sh` copies `zshrc.local.example` there so you have a starter. Edit it as you like.
+**First time:** Install creates both `~/.zshrc.local` and `~/dotfiles/.zshrc.local` from the example if they’re missing. Edit whichever you prefer (or both).
 
 ---
 

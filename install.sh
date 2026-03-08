@@ -12,12 +12,18 @@ if [ -f ~/.zshrc ] && [ ! -L ~/.zshrc ]; then
 fi
 ln -sf "$DOTFILES/.zshrc" ~/.zshrc
 echo "  Linked ~/.zshrc"
-# .zshrc.local (user-owned, never overwritten)
+# .zshrc.local (user-owned, never overwritten). Support both home and repo dir.
 if [ ! -f ~/.zshrc.local ]; then
   cp "$DOTFILES/zshrc.local.example" ~/.zshrc.local
   echo "  Created ~/.zshrc.local (edit for local overrides)"
 else
   echo "  ~/.zshrc.local exists (unchanged)"
+fi
+if [ ! -f "$DOTFILES/.zshrc.local" ]; then
+  cp "$DOTFILES/zshrc.local.example" "$DOTFILES/.zshrc.local"
+  echo "  Created $DOTFILES/.zshrc.local (optional; gitignored)"
+else
+  echo "  $DOTFILES/.zshrc.local exists (unchanged)"
 fi
 
 # starship

@@ -1,0 +1,2 @@
+# Local overrides — user can put .zshrc.local here; we source it but never commit it
+.zshrc.local
