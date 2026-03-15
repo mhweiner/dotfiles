@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# List all open PRs across a GitHub org with pretty formatting.
+# URLs are printed bare so they're ctrl+clickable in most terminals.
+# Requires: gh (GitHub CLI), authenticated.
+
+set -euo pipefail
+
+if [ -z "${1:-}" ]; then
+  echo "Usage: open-prs <org>" >&2
+  exit 1
+fi
+
+owner="$1"
+
+bold="\033[1m"
+dim="\033[2m"
+cyan="\033[36m"
+green="\033[32m"
+yellow="\033[33m"
+magenta="\033[35m"
+reset="\033[0m"
+
+json=$(gh search prs --owner "$owner" --state open \
+  --json repository,title,url,author,createdAt \
+  --limit 100)
+
+count=$(echo "$json" | python3 -c "import json,sys; print(len(json.load(sys.stdin)))")
+
+if [ "$count" -eq 0 ]; then
+  echo -e "${dim}No open PRs in ${owner}.${reset}"
+  exit 0
+fi
+
+echo -e "${bold}${cyan}Open PRs${reset} ${dim}(${owner}, ${count} total)${reset}"
+echo ""
+
+echo "$json" | python3 -c "
+import json, sys
+from datetime import datetime, timezone
+
+data = json.load(sys.stdin)
+data.sort(key=lambda pr: pr['repository']['name'])
+
+now = datetime.now(timezone.utc)
+
+def age(iso):
+    dt = datetime.fromisoformat(iso.replace('Z', '+00:00'))
+    delta = now - dt
+    days = delta.days
+    if days == 0:
+        hours = delta.seconds // 3600
+        if hours == 0:
+            return f'{delta.seconds // 60}m'
+        return f'{hours}h'
+    if days < 30:
+        return f'{days}d'
+    return f'{days // 30}mo'
+
+cur_repo = None
+for pr in data:
+    repo = pr['repository']['name']
+    if repo != cur_repo:
+        if cur_repo is not None:
+            print()
+        print(f'\033[1m\033[33m{repo}\033[0m')
+        cur_repo = repo
+    a = age(pr['createdAt'])
+    author = pr['author']['login']
+    title = pr['title']
+    url = pr['url']
+    print(f'  \033[32m{title}\033[0m')
+    print(f'  \033[2m{author} \u00b7 {a} ago\033[0m')
+    print(f'  \033[36m{url}\033[0m')
+"
+echo ""
