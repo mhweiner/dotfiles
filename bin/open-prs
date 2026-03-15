@@ -10,12 +10,17 @@ URLs are printed bare so they're ctrl+clickable in most terminals.
 Requires: gh (GitHub CLI), authenticated.
 """
 
+from __future__ import annotations
+
 import json
 import os
+import select
 import shutil
 import subprocess
 import sys
+import termios
 import time
+import tty
 from datetime import datetime, timezone
 
 # ── colors ──────────────────────────────────────────────────────────────────
@@ -141,7 +146,7 @@ def render(prs: list[dict], org: str, watch: bool) -> str:
 
     header = f"{BOLD}{CYAN}Open PRs{RESET} {DIM}({org}, {len(prs)} total)"
     if watch:
-        header += f"  ·  updated {now}  ·  ctrl+c to quit"
+        header += f"  ·  updated {now}  ·  {RESET}{BOLD}r{RESET}{DIM} refresh  {RESET}{BOLD}q{RESET}{DIM} quit"
     header += RESET
 
     if not prs:
@@ -203,17 +208,35 @@ def run_once(org: str) -> None:
     print(render(prs, org, watch=False))
 
 
+def wait_for_key(timeout: float) -> str | None:
+    """Wait up to `timeout` seconds for a keypress. Returns the key or None."""
+    deadline = time.monotonic() + timeout
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return None
+        ready, _, _ = select.select([sys.stdin], [], [], min(remaining, 0.25))
+        if ready:
+            return sys.stdin.read(1)
+
+
 def run_watch(org: str) -> None:
+    old_settings = termios.tcgetattr(sys.stdin)
     print(HIDE_CURSOR, end="", flush=True)
     try:
+        tty.setcbreak(sys.stdin.fileno())
         while True:
             prs = fetch(org)
             output = render(prs, org, watch=True)
             print(CLEAR + output, end="", flush=True)
-            time.sleep(300)
+            key = wait_for_key(300)
+            if key in ("q", "\x03"):
+                break
+            # 'r' or any other key → just loop and refresh
     except KeyboardInterrupt:
         pass
     finally:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
         print(SHOW_CURSOR, end="", flush=True)
         print()
 
