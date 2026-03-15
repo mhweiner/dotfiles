@@ -54,6 +54,7 @@ Install symlinks these into `~/.local/bin` (already on PATH in `.zshrc`). Run th
 | **`git-cleanup`** | Prune merged/gone branches. `git-cleanup` (default: main) or `git-cleanup dev`. |
 | **`whatismyip`** | Print your public IP and local IP (with emojis). |
 | **`killport <port>`** | Kill any process listening on the given port. Example: `killport 3000`. |
+| **`open-prs <org>`** | List all open PRs across a GitHub org with CI badges and clickable titles. Add `--watch` for a full-screen dashboard that refreshes every 5 min (`r` refresh, `c` clear merged, `q` quit). Shows post-merge workflow status for recently merged PRs. Requires `gh`. |
 
 ---
 
