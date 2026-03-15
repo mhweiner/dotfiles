@@ -26,6 +26,7 @@ cd ~/dotfiles && git pull && ~/dotfiles/bootstrap.sh
 | [iTerm2](https://iterm2.com/) | Terminal emulator |
 | [Starship](https://starship.rs/) | Cross-shell prompt |
 | [GitHub CLI](https://cli.github.com/) (`gh`) | GitHub from the terminal |
+| [AWS CLI](https://aws.amazon.com/cli/) (`aws`) | AWS from the terminal |
 | [nvm](https://github.com/nvm-sh/nvm) + Node LTS | Node.js version manager |
 | [0xProto Nerd Font](https://www.nerdfonts.com/) | Monospace font with icons |
 
