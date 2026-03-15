@@ -59,6 +59,12 @@ else
   echo "Node already installed ($(node -v))"
 fi
 
+# open-prs (GitHub org PR dashboard)
+echo "Installing open-prs..."
+mkdir -p ~/.local/bin
+curl -fsSL -o ~/.local/bin/open-prs https://raw.githubusercontent.com/logfoxai/open-prs/main/open-prs
+chmod +x ~/.local/bin/open-prs
+
 # Wire up symlinks, fonts, iTerm prefs
 echo ""
 "$DOTFILES/install.sh"

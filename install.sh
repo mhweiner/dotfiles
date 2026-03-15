@@ -38,10 +38,10 @@ echo "  Set iTerm2 to use $DOTFILES/iterm2 for preferences"
 
 # bin (helpers)
 mkdir -p ~/.local/bin
-for f in git-cleanup whatismyip killport open-prs; do
+for f in git-cleanup whatismyip killport; do
   [ -f "$DOTFILES/bin/$f" ] && ln -sf "$DOTFILES/bin/$f" ~/.local/bin/$f
 done
-echo "  Linked ~/.local/bin (git-cleanup, whatismyip, killport, open-prs)"
+echo "  Linked ~/.local/bin (git-cleanup, whatismyip, killport)"
 
 # fonts
 if [ -d "$DOTFILES/fonts" ]; then
