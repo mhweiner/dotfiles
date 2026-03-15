@@ -39,6 +39,10 @@ brew install starship 2>/dev/null || echo "  already installed"
 echo "Installing GitHub CLI..."
 brew install gh 2>/dev/null || echo "  already installed"
 
+# AWS CLI
+echo "Installing AWS CLI..."
+brew install awscli 2>/dev/null || echo "  already installed"
+
 # nvm + Node LTS
 if [ ! -s "$HOME/.nvm/nvm.sh" ]; then
   echo "Installing nvm..."
