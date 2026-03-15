@@ -93,15 +93,15 @@ CI_BADGES = {
     "SUCCESS":  f" {BG_GREEN}{BOLD}{WHITE} ✓ pass {RESET} ",
     "FAILURE":  f" {BG_RED}{BOLD}{WHITE} ✗ fail {RESET} ",
     "ERROR":    f" {BG_RED}{BOLD}{WHITE} ✗ err  {RESET} ",
-    "PENDING":  f" {BG_YELLOW}{BOLD}{WHITE} ● run  {RESET} ",
-    "EXPECTED": f" {BG_YELLOW}{BOLD}{WHITE} ● run  {RESET} ",
+    "PENDING":  f" {BG_YELLOW}{BOLD}{WHITE} ● running {RESET} ",
+    "EXPECTED": f" {BG_YELLOW}{BOLD}{WHITE} ● running {RESET} ",
     None:       f" {DIM}no ci{RESET}  ",
 }
 
 DEPLOY_BADGES = {
     "success":  f" {BG_GREEN}{BOLD}{WHITE} ✓ deployed  {RESET} ",
     "failure":  f" {BG_RED}{BOLD}{WHITE} ✗ failed    {RESET} ",
-    "running":  f" {BG_YELLOW}{BOLD}{WHITE} ● running   {RESET} ",
+    "running":  f" {BG_YELLOW}{BOLD}{WHITE} ● deploying {RESET} ",
     "queued":   f" {BG_YELLOW}{BOLD}{WHITE} ◦ queued    {RESET} ",
 }
 
