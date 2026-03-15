@@ -6,14 +6,18 @@ Usage:
     open-prs <org>            One-shot display
     open-prs <org> --watch    Poll every 5 minutes, full-screen dashboard
 
-URLs are printed bare so they're ctrl+clickable in most terminals.
+Shows open PRs with CI status and recently merged PRs with post-merge
+workflow status. In watch mode, successful deploys fade after 15 min
+and failures stay on screen until resolved.
+
+PR titles are clickable via OSC 8 hyperlinks (iTerm2, VS Code, etc.).
 Requires: gh (GitHub CLI), authenticated.
 """
 
 from __future__ import annotations
 
 import json
-import os
+import re
 import select
 import shutil
 import subprocess
@@ -21,9 +25,9 @@ import sys
 import termios
 import time
 import tty
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
-# ── colors ──────────────────────────────────────────────────────────────────
+# ── colors & terminal ───────────────────────────────────────────────────────
 
 BOLD = "\033[1m"
 DIM = "\033[2m"
@@ -32,7 +36,6 @@ CYAN = "\033[36m"
 GREEN = "\033[32m"
 YELLOW = "\033[33m"
 RED = "\033[31m"
-MAGENTA = "\033[35m"
 WHITE = "\033[37m"
 BG_RED = "\033[41m"
 BG_GREEN = "\033[42m"
@@ -42,31 +45,39 @@ CLEAR = "\033[2J\033[H"
 HIDE_CURSOR = "\033[?25l"
 SHOW_CURSOR = "\033[?25h"
 
-GRAPHQL_QUERY = """
-{
-  search(query: "org:%s is:pr is:open", type: ISSUE, first: 100) {
-    nodes {
-      ... on PullRequest {
-        title
-        url
-        number
-        author { login }
+FADE_SECONDS = 15 * 60
+
+# ── graphql ─────────────────────────────────────────────────────────────────
+
+GRAPHQL_QUERY = """\
+{{
+  open: search(query: "org:{org} is:pr is:open", type: ISSUE, first: 100) {{
+    nodes {{
+      ... on PullRequest {{
+        title url number
+        author {{ login }}
         createdAt
-        repository { name }
-        commits(last: 1) {
-          nodes {
-            commit {
-              statusCheckRollup {
-                state
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-"""
+        repository {{ name }}
+        commits(last: 1) {{
+          nodes {{ commit {{ statusCheckRollup {{ state }} }} }}
+        }}
+      }}
+    }}
+  }}
+  merged: search(query: "org:{org} is:pr is:merged merged:>{cutoff}", type: ISSUE, first: 50) {{
+    nodes {{
+      ... on PullRequest {{
+        title url number
+        author {{ login }}
+        mergedAt
+        mergeCommit {{ oid }}
+        repository {{ name }}
+      }}
+    }}
+  }}
+}}"""
+
+# ── badges ──────────────────────────────────────────────────────────────────
 
 CI_BADGES = {
     "SUCCESS":  f" {BG_GREEN}{BOLD}{WHITE} ✓ pass {RESET} ",
@@ -76,6 +87,15 @@ CI_BADGES = {
     "EXPECTED": f" {BG_YELLOW}{BOLD}{WHITE} ● run  {RESET} ",
     None:       f" {DIM}no ci{RESET}  ",
 }
+
+DEPLOY_BADGES = {
+    "success":  f" {BG_GREEN}{BOLD}{WHITE} ✓ deployed  {RESET} ",
+    "failure":  f" {BG_RED}{BOLD}{WHITE} ✗ failed    {RESET} ",
+    "running":  f" {BG_YELLOW}{BOLD}{WHITE} ● running   {RESET} ",
+    "queued":   f" {BG_YELLOW}{BOLD}{WHITE} ◦ queued    {RESET} ",
+}
+
+# ── helpers ─────────────────────────────────────────────────────────────────
 
 
 def age(iso: str) -> str:
@@ -92,124 +112,302 @@ def age(iso: str) -> str:
     return f"{days // 30}mo"
 
 
-def fetch(org: str) -> list[dict]:
+def visible_len(s: str) -> int:
+    stripped = re.sub(r"\033\][^\a]*\a", "", s)   # OSC sequences
+    stripped = re.sub(r"\033\[[0-9;]*m", "", stripped)  # SGR sequences
+    return len(stripped)
+
+
+def link(url: str, text: str) -> str:
+    """Wrap text in an OSC 8 hyperlink."""
+    return f"\033]8;;{url}\a{text}\033]8;;\a"
+
+
+# ── data fetching ───────────────────────────────────────────────────────────
+
+
+def fetch_prs(org: str) -> tuple[list[dict], list[dict]]:
+    """Single GraphQL call → (open_prs, merged_prs)."""
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=4)).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
+    query = GRAPHQL_QUERY.format(org=org, cutoff=cutoff)
     result = subprocess.run(
-        ["gh", "api", "graphql", "-f", f"query={GRAPHQL_QUERY % org}"],
+        ["gh", "api", "graphql", "-f", f"query={query}"],
         capture_output=True, text=True, check=True,
     )
-    data = json.loads(result.stdout)
-    prs = []
-    for node in data["data"]["search"]["nodes"]:
+    data = json.loads(result.stdout)["data"]
+
+    open_prs = []
+    for node in data["open"]["nodes"]:
         if not node:
             continue
         rollup = node["commits"]["nodes"][0]["commit"]["statusCheckRollup"]
-        ci = rollup["state"] if rollup else None
-        prs.append({
+        open_prs.append({
             "repo": node["repository"]["name"],
             "title": node["title"],
             "url": node["url"],
             "author": node["author"]["login"],
             "age": age(node["createdAt"]),
-            "ci": ci,
+            "ci": rollup["state"] if rollup else None,
         })
-    prs.sort(key=lambda p: (p["repo"], p["title"]))
-    return prs
+    open_prs.sort(key=lambda p: (p["repo"], p["title"]))
+
+    merged_prs = []
+    for node in data["merged"]["nodes"]:
+        if not node or not node.get("mergeCommit"):
+            continue
+        merged_prs.append({
+            "repo": node["repository"]["name"],
+            "title": node["title"],
+            "url": node["url"],
+            "author": node["author"]["login"],
+            "merged_age": age(node["mergedAt"]),
+            "sha": node["mergeCommit"]["oid"],
+        })
+    merged_prs.sort(key=lambda p: (p["repo"], p["title"]))
+
+    return open_prs, merged_prs
 
 
-def strip_ansi(s: str) -> int:
-    """Visible length of a string ignoring ANSI escapes."""
-    import re
-    return len(re.sub(r"\033\[[0-9;]*m", "", s))
+def fetch_workflow_status(org: str, repo: str, sha: str) -> dict | None:
+    """Get aggregated workflow run status for a merge commit.
+
+    Returns {"status": ..., "completed_at": datetime | None} or None.
+    """
+    try:
+        result = subprocess.run(
+            ["gh", "api",
+             f"repos/{org}/{repo}/actions/runs?head_sha={sha}&per_page=100"],
+            capture_output=True, text=True, check=True,
+        )
+        runs = json.loads(result.stdout).get("workflow_runs", [])
+    except (subprocess.CalledProcessError, json.JSONDecodeError):
+        return None
+
+    if not runs:
+        return None
+
+    any_running = any(r["status"] == "in_progress" for r in runs)
+    any_queued = any(r["status"] in ("queued", "waiting") for r in runs)
+    all_completed = all(r["status"] == "completed" for r in runs)
+
+    if any_running:
+        return {"status": "running", "completed_at": None}
+    if any_queued:
+        return {"status": "queued", "completed_at": None}
+    if all_completed:
+        completed_at = max(
+            datetime.fromisoformat(r["updated_at"].replace("Z", "+00:00"))
+            for r in runs
+        )
+        any_failure = any(
+            r.get("conclusion") == "failure"
+            for r in runs if r["status"] == "completed"
+        )
+        status = "failure" if any_failure else "success"
+        return {"status": status, "completed_at": completed_at}
+    return {"status": "running", "completed_at": None}
 
 
-def render_pr(pr: dict, width: int) -> list[str]:
-    """Render a single PR as a list of lines, truncated to width."""
-    ci = CI_BADGES.get(pr["ci"], CI_BADGES[None])
-    title = pr["title"]
-    meta = f"{pr['author']} · {pr['age']} ago"
-    url = pr["url"]
+def build_deployments(
+    org: str,
+    merged_prs: list[dict],
+    failed_cache: dict[str, dict],
+) -> list[dict]:
+    """Determine which merged PRs to display with deploy status.
 
-    max_title = width - strip_ansi(ci) - 2
-    if len(title) > max_title:
-        title = title[: max_title - 1] + "…"
+    Mutates failed_cache so watch-mode failures persist across refreshes.
+    """
+    now = datetime.now(timezone.utc)
+    deployments: list[dict] = []
+    seen_urls: set[str] = set()
+
+    for pr in merged_prs:
+        url = pr["url"]
+        seen_urls.add(url)
+        ws = fetch_workflow_status(org, pr["repo"], pr["sha"])
+
+        if ws is None:
+            failed_cache.pop(url, None)
+            continue
+
+        if ws["status"] == "failure":
+            failed_cache[url] = {"pr": pr, "sha": pr["sha"]}
+            deployments.append({**pr, "deploy": ws["status"]})
+        elif ws["status"] in ("running", "queued"):
+            failed_cache.pop(url, None)
+            deployments.append({**pr, "deploy": ws["status"]})
+        elif ws["status"] == "success":
+            failed_cache.pop(url, None)
+            if ws["completed_at"]:
+                elapsed = (now - ws["completed_at"]).total_seconds()
+                if elapsed < FADE_SECONDS:
+                    deployments.append({**pr, "deploy": ws["status"]})
+
+    # Re-check failures that fell out of the search window
+    stale: list[str] = []
+    for url, cached in failed_cache.items():
+        if url in seen_urls:
+            continue
+        ws = fetch_workflow_status(org, cached["pr"]["repo"], cached["sha"])
+        if ws is None or ws["status"] == "success":
+            stale.append(url)
+        else:
+            deployments.append({**cached["pr"], "deploy": ws["status"]})
+    for url in stale:
+        del failed_cache[url]
+
+    deployments.sort(key=lambda d: (d["repo"], d["title"]))
+    return deployments
+
+
+# ── rendering ───────────────────────────────────────────────────────────────
+
+_BADGE_WIDTH = max(
+    visible_len(b) for b in list(CI_BADGES.values()) + list(DEPLOY_BADGES.values())
+)
+
+
+def _render_item(item: dict, width: int) -> list[str]:
+    """Render a PR as 2 lines: badge + title, then left-aligned metadata."""
+    if item.get("deploy"):
+        badge = DEPLOY_BADGES.get(item["deploy"], DEPLOY_BADGES["running"])
+        merged_label = (
+            f"{RED}merged{RESET}{DIM}"
+            if item["deploy"] == "failure"
+            else "merged"
+        )
+        meta = f"{item['author']} · {merged_label} {item['merged_age']} ago"
+    else:
+        badge = CI_BADGES.get(item.get("ci"), CI_BADGES[None])
+        meta = f"{item['author']} · {item['age']} ago"
+
+    badge_vis = visible_len(badge)
+    pad_badge = " " * (_BADGE_WIDTH - badge_vis)
+
+    title = item["title"]
+    max_title = width - _BADGE_WIDTH - 4
+    if len(title) > max(max_title, 12):
+        title = title[: max(max_title - 1, 11)] + "…"
+
+    linked_title = link(item["url"], f"{GREEN}{title}{RESET}")
+    indent = " " * (_BADGE_WIDTH + 2)
 
     return [
-        f"  {ci}{GREEN}{title}{RESET}",
-        f"          {DIM}{meta}{RESET}",
-        f"          {CYAN}{url}{RESET}",
+        f"  {badge}{pad_badge}{linked_title}",
+        f"  {indent}{DIM}{meta}{RESET}",
     ]
 
 
-def render(prs: list[dict], org: str, watch: bool) -> str:
+def render(
+    open_prs: list[dict],
+    deployments: list[dict],
+    org: str,
+    watch: bool,
+) -> str:
     cols, rows = shutil.get_terminal_size((80, 24))
-    now = datetime.now().strftime("%H:%M:%S")
+    now_str = datetime.now().strftime("%H:%M:%S")
 
-    header = f"{BOLD}{CYAN}Open PRs{RESET} {DIM}({org}, {len(prs)} total)"
+    all_items = [
+        {**pr, "kind": "open"} for pr in open_prs
+    ] + [
+        {**d, "kind": "merged"} for d in deployments
+    ]
+
+    n_open = len(open_prs)
+    n_merged = len(deployments)
+    counts = f"{n_open} open"
+    if n_merged:
+        counts += f", {n_merged} merged"
+
+    header = f"{BOLD}{CYAN}PRs{RESET} {DIM}({org}, {counts})"
     if watch:
-        header += f"  ·  updated {now}  ·  {RESET}{BOLD}r{RESET}{DIM} refresh  {RESET}{BOLD}q{RESET}{DIM} quit"
+        header += (
+            f"  ·  updated {now_str}"
+            f"  ·  {RESET}{BOLD}r{RESET}{DIM} refresh"
+            f"  {RESET}{BOLD}c{RESET}{DIM} clear merged"
+            f"  {RESET}{BOLD}q{RESET}{DIM} quit"
+        )
     header += RESET
 
-    if not prs:
-        return f"{header}\n\n  {DIM}No open PRs.{RESET}\n"
+    if not all_items:
+        return f"{header}\n\n  {DIM}No PRs.{RESET}\n"
 
-    # Group by repo
+    # Group by repo, open PRs first then merged within each group
     groups: dict[str, list[dict]] = {}
-    for pr in prs:
-        groups.setdefault(pr["repo"], []).append(pr)
+    for item in all_items:
+        groups.setdefault(item["repo"], []).append(item)
+    for items in groups.values():
+        items.sort(key=lambda x: (0 if x["kind"] == "open" else 1, x["title"]))
 
     repo_names = sorted(groups.keys())
 
-    # Decide column layout: 2 columns if terminal >= 140 wide and > 3 repos
-    use_two_cols = cols >= 140 and len(repo_names) > 3
-    col_width = (cols // 2) - 2 if use_two_cols else cols
+    # 2-column when >= 100 wide and enough repos to benefit
+    total_items = sum(len(g) for g in groups.values())
+    use_two_cols = cols >= 100 and total_items > 15
+    col_width = (cols - 3) // 2 if use_two_cols else cols
 
-    # Build blocks per repo
     blocks: list[list[str]] = []
     for repo in repo_names:
         lines = [f"  {BOLD}{YELLOW}{repo}{RESET}"]
-        for pr in groups[repo]:
-            lines.extend(render_pr(pr, col_width))
-        lines.append("")
+        for item in groups[repo]:
+            lines.extend(_render_item(item, col_width))
         blocks.append(lines)
 
     if not use_two_cols:
-        out = [header, ""]
+        out = [header]
         for block in blocks:
+            out.append("")
             out.extend(block)
         return "\n".join(out)
 
-    # Two-column layout: distribute blocks to balance line count
-    left_lines: list[str] = []
-    right_lines: list[str] = []
-    left_count = 0
-    right_count = 0
+    # Distribute blocks into 2 columns, balancing line count
+    left: list[str] = []
+    right: list[str] = []
+    lc = rc = 0
     for block in blocks:
-        if left_count <= right_count:
-            left_lines.extend(block)
-            left_count += len(block)
+        target = left if lc <= rc else right
+        if target:
+            target.append("")
+        target.extend(block)
+        if target is left:
+            lc += len(block) + (1 if lc else 0)
         else:
-            right_lines.extend(block)
-            right_count += len(block)
+            rc += len(block) + (1 if rc else 0)
 
-    max_lines = max(len(left_lines), len(right_lines))
-    left_lines.extend([""] * (max_lines - len(left_lines)))
-    right_lines.extend([""] * (max_lines - len(right_lines)))
-
+    max_h = max(len(left), len(right))
+    left.extend([""] * (max_h - len(left)))
+    right.extend([""] * (max_h - len(right)))
     sep = f" {DIM}│{RESET} "
     out = [header, ""]
-    for l, r in zip(left_lines, right_lines):
-        pad = col_width - strip_ansi(l)
-        out.append(l + " " * max(pad, 0) + sep + r)
+    for l_line, r_line in zip(left, right):
+        pad = col_width - visible_len(l_line)
+        out.append(l_line + " " * max(pad, 0) + sep + r_line)
     return "\n".join(out)
 
 
+# ── run modes ───────────────────────────────────────────────────────────────
+
+
+def _loading(msg: str = "Loading") -> None:
+    """Print a loading message (overwritten on next write)."""
+    sys.stdout.write(f"\r{DIM}{msg}…{RESET}")
+    sys.stdout.flush()
+
+
 def run_once(org: str) -> None:
-    prs = fetch(org)
-    print(render(prs, org, watch=False))
+    _loading("Fetching PRs")
+    open_prs, merged_prs = fetch_prs(org)
+    if merged_prs:
+        sys.stdout.write(f"\r{DIM}Checking workflows…{RESET}")
+        sys.stdout.flush()
+    deployments = build_deployments(org, merged_prs, {})
+    sys.stdout.write("\r\033[K")
+    print(render(open_prs, deployments, org, watch=False))
 
 
 def wait_for_key(timeout: float) -> str | None:
-    """Wait up to `timeout` seconds for a keypress. Returns the key or None."""
     deadline = time.monotonic() + timeout
     while True:
         remaining = deadline - time.monotonic()
@@ -220,25 +418,50 @@ def wait_for_key(timeout: float) -> str | None:
             return sys.stdin.read(1)
 
 
+def _draw(output: str) -> None:
+    """Clear the alternate screen and draw output from the top."""
+    sys.stdout.write(f"\033[H\033[J{output}")
+    sys.stdout.flush()
+
+
+def _draw_loading(msg: str = "Refreshing") -> None:
+    """Show a loading indicator at the top of the alternate screen."""
+    sys.stdout.write(f"\033[H{DIM}{msg}…{RESET}\033[K")
+    sys.stdout.flush()
+
+
 def run_watch(org: str) -> None:
     old_settings = termios.tcgetattr(sys.stdin)
-    print(HIDE_CURSOR, end="", flush=True)
+    failed_cache: dict[str, dict] = {}
+    dismissed: set[str] = set()
+    first = True
+    sys.stdout.write(f"\033[?1049h{HIDE_CURSOR}")
+    sys.stdout.flush()
     try:
         tty.setcbreak(sys.stdin.fileno())
         while True:
-            prs = fetch(org)
-            output = render(prs, org, watch=True)
-            print(CLEAR + output, end="", flush=True)
+            _draw_loading("Loading" if first else "Refreshing")
+            first = False
+            open_prs, merged_prs = fetch_prs(org)
+            if merged_prs:
+                _draw_loading("Checking workflows")
+            deployments = build_deployments(org, merged_prs, failed_cache)
+            visible = [d for d in deployments if d["url"] not in dismissed]
+            _draw(render(open_prs, visible, org, watch=True))
+
             key = wait_for_key(300)
             if key in ("q", "\x03"):
                 break
-            # 'r' or any other key → just loop and refresh
+            if key == "c":
+                dismissed.update(d["url"] for d in deployments)
+                visible = [d for d in deployments if d["url"] not in dismissed]
+                _draw(render(open_prs, visible, org, watch=True))
     except KeyboardInterrupt:
         pass
     finally:
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
-        print(SHOW_CURSOR, end="", flush=True)
-        print()
+        sys.stdout.write(f"{SHOW_CURSOR}\033[?1049l")
+        sys.stdout.flush()
 
 
 def main() -> None:
