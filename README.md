@@ -28,6 +28,7 @@ cd ~/dotfiles && git pull && ~/dotfiles/bootstrap.sh
 | [GitHub CLI](https://cli.github.com/) (`gh`) | GitHub from the terminal |
 | [AWS CLI](https://aws.amazon.com/cli/) (`aws`) | AWS from the terminal |
 | [nvm](https://github.com/nvm-sh/nvm) + Node LTS | Node.js version manager |
+| [open-prs](https://github.com/logfoxai/open-prs) | GitHub org PR dashboard TUI |
 | [0xProto Nerd Font](https://www.nerdfonts.com/) | Monospace font with icons |
 
 ## What's in the repo
@@ -49,7 +50,7 @@ cd ~/dotfiles && git pull && ~/dotfiles/bootstrap.sh
 | `git-cleanup` | Prune merged/gone branches. Default branch: `main`. |
 | `whatismyip` | Print public and local IP. |
 | `killport <port>` | Kill whatever's listening on a port. |
-| `open-prs <org>` | List open PRs across a GitHub org with CI badges and clickable titles. `--watch` for a full-screen dashboard (refreshes every 5 min, `r` refresh, `c` clear merged, `q` quit). Requires `gh`. |
+| [`open-prs`](https://github.com/logfoxai/open-prs) `<org>` | Full-screen TUI dashboard for all open PRs across a GitHub org. Live CI badges, post-merge deploy tracking, clickable titles. `--once` for a one-shot print. Installed from [logfoxai/open-prs](https://github.com/logfoxai/open-prs). |
 
 ## Local overrides
 
