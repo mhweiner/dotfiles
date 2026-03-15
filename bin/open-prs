@@ -1,0 +1,262 @@
+#!/usr/bin/env python3
+
+"""List all open PRs across a GitHub org with pretty formatting.
+
+Usage:
+    open-prs <org>            One-shot display
+    open-prs <org> --watch    Poll every 5 minutes, full-screen dashboard
+
+URLs are printed bare so they're ctrl+clickable in most terminals.
+Requires: gh (GitHub CLI), authenticated.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import select
+import shutil
+import subprocess
+import sys
+import termios
+import time
+import tty
+from datetime import datetime, timezone
+
+# ── colors ──────────────────────────────────────────────────────────────────
+
+BOLD = "\033[1m"
+DIM = "\033[2m"
+RESET = "\033[0m"
+CYAN = "\033[36m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+RED = "\033[31m"
+MAGENTA = "\033[35m"
+WHITE = "\033[37m"
+BG_RED = "\033[41m"
+BG_GREEN = "\033[42m"
+BG_YELLOW = "\033[43m"
+
+CLEAR = "\033[2J\033[H"
+HIDE_CURSOR = "\033[?25l"
+SHOW_CURSOR = "\033[?25h"
+
+GRAPHQL_QUERY = """
+{
+  search(query: "org:%s is:pr is:open", type: ISSUE, first: 100) {
+    nodes {
+      ... on PullRequest {
+        title
+        url
+        number
+        author { login }
+        createdAt
+        repository { name }
+        commits(last: 1) {
+          nodes {
+            commit {
+              statusCheckRollup {
+                state
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
+CI_BADGES = {
+    "SUCCESS":  f" {BG_GREEN}{BOLD}{WHITE} ✓ pass {RESET} ",
+    "FAILURE":  f" {BG_RED}{BOLD}{WHITE} ✗ fail {RESET} ",
+    "ERROR":    f" {BG_RED}{BOLD}{WHITE} ✗ err  {RESET} ",
+    "PENDING":  f" {BG_YELLOW}{BOLD}{WHITE} ● run  {RESET} ",
+    "EXPECTED": f" {BG_YELLOW}{BOLD}{WHITE} ● run  {RESET} ",
+    None:       f" {DIM}no ci{RESET}  ",
+}
+
+
+def age(iso: str) -> str:
+    dt = datetime.fromisoformat(iso.replace("Z", "+00:00"))
+    delta = datetime.now(timezone.utc) - dt
+    days = delta.days
+    if days == 0:
+        hours = delta.seconds // 3600
+        if hours == 0:
+            return f"{delta.seconds // 60}m"
+        return f"{hours}h"
+    if days < 30:
+        return f"{days}d"
+    return f"{days // 30}mo"
+
+
+def fetch(org: str) -> list[dict]:
+    result = subprocess.run(
+        ["gh", "api", "graphql", "-f", f"query={GRAPHQL_QUERY % org}"],
+        capture_output=True, text=True, check=True,
+    )
+    data = json.loads(result.stdout)
+    prs = []
+    for node in data["data"]["search"]["nodes"]:
+        if not node:
+            continue
+        rollup = node["commits"]["nodes"][0]["commit"]["statusCheckRollup"]
+        ci = rollup["state"] if rollup else None
+        prs.append({
+            "repo": node["repository"]["name"],
+            "title": node["title"],
+            "url": node["url"],
+            "author": node["author"]["login"],
+            "age": age(node["createdAt"]),
+            "ci": ci,
+        })
+    prs.sort(key=lambda p: (p["repo"], p["title"]))
+    return prs
+
+
+def strip_ansi(s: str) -> int:
+    """Visible length of a string ignoring ANSI escapes."""
+    import re
+    return len(re.sub(r"\033\[[0-9;]*m", "", s))
+
+
+def render_pr(pr: dict, width: int) -> list[str]:
+    """Render a single PR as a list of lines, truncated to width."""
+    ci = CI_BADGES.get(pr["ci"], CI_BADGES[None])
+    title = pr["title"]
+    meta = f"{pr['author']} · {pr['age']} ago"
+    url = pr["url"]
+
+    max_title = width - strip_ansi(ci) - 2
+    if len(title) > max_title:
+        title = title[: max_title - 1] + "…"
+
+    return [
+        f"  {ci}{GREEN}{title}{RESET}",
+        f"          {DIM}{meta}{RESET}",
+        f"          {CYAN}{url}{RESET}",
+    ]
+
+
+def render(prs: list[dict], org: str, watch: bool) -> str:
+    cols, rows = shutil.get_terminal_size((80, 24))
+    now = datetime.now().strftime("%H:%M:%S")
+
+    header = f"{BOLD}{CYAN}Open PRs{RESET} {DIM}({org}, {len(prs)} total)"
+    if watch:
+        header += f"  ·  updated {now}  ·  {RESET}{BOLD}r{RESET}{DIM} refresh  {RESET}{BOLD}q{RESET}{DIM} quit"
+    header += RESET
+
+    if not prs:
+        return f"{header}\n\n  {DIM}No open PRs.{RESET}\n"
+
+    # Group by repo
+    groups: dict[str, list[dict]] = {}
+    for pr in prs:
+        groups.setdefault(pr["repo"], []).append(pr)
+
+    repo_names = sorted(groups.keys())
+
+    # Decide column layout: 2 columns if terminal >= 140 wide and > 3 repos
+    use_two_cols = cols >= 140 and len(repo_names) > 3
+    col_width = (cols // 2) - 2 if use_two_cols else cols
+
+    # Build blocks per repo
+    blocks: list[list[str]] = []
+    for repo in repo_names:
+        lines = [f"  {BOLD}{YELLOW}{repo}{RESET}"]
+        for pr in groups[repo]:
+            lines.extend(render_pr(pr, col_width))
+        lines.append("")
+        blocks.append(lines)
+
+    if not use_two_cols:
+        out = [header, ""]
+        for block in blocks:
+            out.extend(block)
+        return "\n".join(out)
+
+    # Two-column layout: distribute blocks to balance line count
+    left_lines: list[str] = []
+    right_lines: list[str] = []
+    left_count = 0
+    right_count = 0
+    for block in blocks:
+        if left_count <= right_count:
+            left_lines.extend(block)
+            left_count += len(block)
+        else:
+            right_lines.extend(block)
+            right_count += len(block)
+
+    max_lines = max(len(left_lines), len(right_lines))
+    left_lines.extend([""] * (max_lines - len(left_lines)))
+    right_lines.extend([""] * (max_lines - len(right_lines)))
+
+    sep = f" {DIM}│{RESET} "
+    out = [header, ""]
+    for l, r in zip(left_lines, right_lines):
+        pad = col_width - strip_ansi(l)
+        out.append(l + " " * max(pad, 0) + sep + r)
+    return "\n".join(out)
+
+
+def run_once(org: str) -> None:
+    prs = fetch(org)
+    print(render(prs, org, watch=False))
+
+
+def wait_for_key(timeout: float) -> str | None:
+    """Wait up to `timeout` seconds for a keypress. Returns the key or None."""
+    deadline = time.monotonic() + timeout
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return None
+        ready, _, _ = select.select([sys.stdin], [], [], min(remaining, 0.25))
+        if ready:
+            return sys.stdin.read(1)
+
+
+def run_watch(org: str) -> None:
+    old_settings = termios.tcgetattr(sys.stdin)
+    print(HIDE_CURSOR, end="", flush=True)
+    try:
+        tty.setcbreak(sys.stdin.fileno())
+        while True:
+            prs = fetch(org)
+            output = render(prs, org, watch=True)
+            print(CLEAR + output, end="", flush=True)
+            key = wait_for_key(300)
+            if key in ("q", "\x03"):
+                break
+            # 'r' or any other key → just loop and refresh
+    except KeyboardInterrupt:
+        pass
+    finally:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+        print(SHOW_CURSOR, end="", flush=True)
+        print()
+
+
+def main() -> None:
+    args = [a for a in sys.argv[1:] if not a.startswith("-")]
+    flags = {a for a in sys.argv[1:] if a.startswith("-")}
+
+    if not args or "--help" in flags or "-h" in flags:
+        print("Usage: open-prs <org> [--watch]", file=sys.stderr)
+        sys.exit(1 if not args else 0)
+
+    org = args[0]
+    watch = "--watch" in flags or "-w" in flags
+
+    if watch:
+        run_watch(org)
+    else:
+        run_once(org)
+
+
+if __name__ == "__main__":
+    main()
