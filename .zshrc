@@ -16,6 +16,26 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
+# Auto-use Node version from nearest .nvmrc (requires nvm to be loaded above)
+autoload -U add-zsh-hook
+load-nvmrc() {
+  local nvmrc_path wanted v_wanted v_current
+  nvmrc_path="$(nvm_find_nvmrc)"
+  if [ -n "$nvmrc_path" ]; then
+    wanted="$(command head -n 1 "$nvmrc_path" | command tr -d '\r')"
+    v_wanted="$(nvm version "$wanted")"
+    v_current="$(nvm version)"
+    if [ "$v_wanted" = "N/A" ]; then
+      nvm install
+    elif [ "$v_wanted" != "$v_current" ]; then
+      nvm use --silent
+    fi
+  elif [ "$(nvm version)" != "$(nvm version default)" ]; then
+    nvm use default --silent
+  fi
+}
+add-zsh-hook chpwd load-nvmrc
+load-nvmrc
 
 # === starship ===
 
