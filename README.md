@@ -43,10 +43,19 @@ cd ~/dotfiles && git pull && ~/dotfiles/bootstrap.sh
 | `install.sh` | Symlinks config files and points iTerm at this repo |
 | `bootstrap.sh` | Installs tools + runs `install.sh` |
 
+## Git `user.name` / `user.email`
+
+Git does not infer commit authorship from `gh login`; it needs `user.name` and `user.email` in global config.
+
+On **`install.sh` / `bootstrap.sh`**, after **`gh`** is available: if **both** values are unset, **`ensure-git-identity`** sets them from your active **`gh`** account (profile **name** or **login**, **primary email** or **`login@users.noreply.github.com`**).
+
+Run anytime: **`ensure-git-identity`** (on `PATH` via `~/.local/bin`). Override anytime with plain **`git config --global`**.
+
 ## CLI helpers
 
 | Command | Description |
 |---------|-------------|
+| `ensure-git-identity` | If global Git `user.name`/`user.email` are missing, set them from `gh auth`. |
 | `git-cleanup` | Prune merged/gone branches. Default branch: `main`. |
 | `whatismyip` | Print public and local IP. |
 | `killport <port>` | Kill whatever's listening on a port. |

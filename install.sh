@@ -38,10 +38,15 @@ echo "  Set iTerm2 to use $DOTFILES/iterm2 for preferences"
 
 # bin (helpers)
 mkdir -p ~/.local/bin
-for f in git-cleanup whatismyip killport; do
+for f in git-cleanup whatismyip killport ensure-git-identity; do
   [ -f "$DOTFILES/bin/$f" ] && ln -sf "$DOTFILES/bin/$f" ~/.local/bin/$f
 done
-echo "  Linked ~/.local/bin (git-cleanup, whatismyip, killport)"
+echo "  Linked ~/.local/bin (git-cleanup, whatismyip, killport, ensure-git-identity)"
+
+# Git author for commits: set from active `gh` account if user.name / user.email not both set
+if [ -x ~/.local/bin/ensure-git-identity ]; then
+  ~/.local/bin/ensure-git-identity || true
+fi
 
 # fonts
 if [ -d "$DOTFILES/fonts" ]; then
