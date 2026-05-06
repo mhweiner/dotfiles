@@ -7,9 +7,3 @@
 
 # Example: extra aliases or functions
 # alias myalias='some command'
-
-# Git commit identity
-# install.sh / bootstrap.sh run ~/.local/bin/ensure-git-identity after linking bin helpers:
-# if BOTH user.name and user.email are unset globally, they are set from `gh auth` (GitHub profile name + primary email, or login@users.noreply.github.com).
-# To override:  git config --global user.name '...'  &&  git config --global user.email '...'
-# To re-run sync: unset both (git config --global --unset user.name  etc.) then: ensure-git-identity
