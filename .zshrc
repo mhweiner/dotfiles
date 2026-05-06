@@ -1,4 +1,5 @@
-export PATH="/Users/marc/Library/Python/3.9/bin:$PATH"
+# macOS user-local Python scripts (3.9 layout); only if present
+[ -d "$HOME/Library/Python/3.9/bin" ] && export PATH="$HOME/Library/Python/3.9/bin:$PATH"
 export PATH="/opt/homebrew/bin:$PATH"
 export PATH="/opt/homebrew/opt/gnu-sed/libexec/gnubin:$PATH"
 export PATH="$HOME/.local/bin:$PATH" # cursor agent
