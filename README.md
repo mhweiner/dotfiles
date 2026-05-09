@@ -1,6 +1,6 @@
 # dotfiles 🦊
 
-Reproducible macOS setup for a terminal-focused workflow: shell, prompt, common CLI tools, and small helpers. *Now with 100% more pixels than `ed`.* ✨
+Reproducible macOS setup for a terminal-focused workflow: shell, prompt, common CLI tools, and small helpers.
 
 ---
 
