@@ -2,7 +2,6 @@
 
 My personal macOS setup, built around a **terminal-focused workflow**: shell, prompt, common CLI tools, and small helpers. Feel free to fork, steal ideas, or copy bits wholesale; I put it here so others can use it too.
 
----
 
 ## Requirements 🍎
 
@@ -13,7 +12,6 @@ My personal macOS setup, built around a **terminal-focused workflow**: shell, pr
 xcode-select --install
 ```
 
----
 
 ## First-time setup 🚀
 
@@ -26,7 +24,6 @@ git clone https://github.com/mhweiner/dotfiles.git ~/dotfiles
 
 Quit and reopen **iTerm2** when the script finishes so it picks up the preferences folder.
 
----
 
 ## What `bootstrap.sh` installs 🧰
 
@@ -43,7 +40,6 @@ Quit and reopen **iTerm2** when the script finishes so it picks up the preferenc
 
 `bootstrap.sh` is **safe to run again** on an already set up Mac: it skips Homebrew if present, skips each formula or cask that is already installed (no mass upgrade), skips nvm if it is already installed, installs Node LTS only if `node` is missing, then runs **`install.sh`**.
 
----
 
 ## What `install.sh` does 🤫
 
@@ -56,7 +52,6 @@ Runs silently (no log spam — *stealth mode engaged*). It:
 5. Symlinks **`bin/`** helpers into **`~/.local/bin`**.
 6. Copies **fonts** from `~/dotfiles/fonts/` into `~/Library/Fonts/` when that directory exists (skips existing files).
 
----
 
 ## Where to edit things 📝
 
@@ -67,7 +62,6 @@ Runs silently (no log spam — *stealth mode engaged*). It:
 | Shared Vim | `~/dotfiles/vimrc` (used when `~/.vimrc` is the symlink install created) |
 | Machine-only Vim | Your own `~/.vimrc` — install leaves it untouched if it already exists |
 
----
 
 ## Updating ⬆️
 
@@ -83,7 +77,6 @@ cd ~/dotfiles && git pull && ./install.sh
 cd ~/dotfiles && git pull && ./bootstrap.sh
 ```
 
----
 
 ## Repository layout 📂
 
@@ -94,20 +87,18 @@ cd ~/dotfiles && git pull && ./bootstrap.sh
 | `starship.toml` | Starship prompt theme |
 | `iterm2/` | iTerm2 preferences (folder iTerm reads/writes) |
 | `fonts/` | Optional `.ttf` files copied to `~/Library/Fonts` |
-| `bin/` | Helper scripts symlinked to `~/.local/bin` |
+| `bin/` | Scripts symlinked to `~/.local/bin` (see **Helpers**) |
 | `install.sh` | `~/.zshrc` dotfiles include, optional `~/.vimrc` symlink, Starship, iTerm path, `bin`, fonts (no stdout) |
 | `bootstrap.sh` | Installs the table above, then runs `install.sh` |
 
----
 
-## Scripts in `bin/` 🧪
+## Helpers 🧪
 
-These live in the repo under **`bin/`** and get symlinked to **`~/.local/bin`** by `install.sh` (same `PATH` entry as the rest of your dotfiles zsh config). They are separate from Homebrew-installed tools like `open-prs` — those are only in the **What `bootstrap.sh` installs** table above.
-
-| Command | Purpose |
-|---------|---------|
-| `git-cleanup` 🧹 | Prune merged and gone local branches (default base: `main`) |
-| `whatismyip` 🌍 | Show public and local IP addresses |
-| `listenport` 👀 | Show what is using a port (`lsof`). **`listenport -k <port>`** kills those processes. |
-| `npm-gh` 📦 | Run **`npm`** with **`GITHUB_TOKEN`** from **`gh auth token`** (for GitHub Packages). Your **`.zshrc`** defines a **`npm`** function that calls this when `npm-gh` is on `PATH` (after `install.sh`). |
-| `awssso` ☁️ | **`aws sso login --profile <profile>`**. Your **`.zshrc`** defines an **`awssso`** function that runs this binary then **`export AWS_PROFILE=<profile>`** in the current shell. |
+| Name | Where | What |
+|------|-------|------|
+| `listenport` | `bin/` | Port usage (`lsof`); **`-k <port>`** kills listeners. |
+| `ll` | `.zshrc` | Long listing (`ls -lah`): all entries, human sizes, dotfiles. |
+| `git-cleanup` | `.zshrc` | Checkout/pull, prune `: gone]` branches (default **`main`**). |
+| `whatismyip` | `.zshrc` | Print public and local IP. |
+| `npm` | `.zshrc` | Overrides **`npm`** so installs use **`GITHUB_TOKEN`** from **`gh auth token`** for **GitHub Packages**, and ensures **`gh`** has the **`read:packages`** scope when it is missing. |
+| `awssso` | `.zshrc` | **`aws sso login`**, then **`export AWS_PROFILE`**. |

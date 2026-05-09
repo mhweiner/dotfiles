@@ -8,7 +8,28 @@ export PATH="$HOME/.local/bin:$PATH" # cursor agent
 # === aliases ===
 
 alias ll='ls -lah'
-# Helpers (git-cleanup, whatismyip, listenport, npm-gh, awssso) → ~/.local/bin via install.sh
+
+# === shell functions (short helpers; `listenport` stays in bin/) ===
+
+git-cleanup() {
+  local branch="${1:-main}"
+  git checkout "$branch" && git pull -p
+  local gone
+  gone=$(git branch -vv | grep ': gone]' | awk '{print $1}' | grep -vE '^(main|dev|master)$')
+  if [ -n "$gone" ]; then
+    echo "$gone" | xargs git branch -D
+  fi
+}
+
+whatismyip() {
+  local pub local_ip
+  pub=$(curl -s --max-time 3 https://checkip.amazonaws.com 2>/dev/null) || pub="—"
+  local_ip=$(ipconfig getifaddr en0 2>/dev/null) || local_ip=$(ipconfig getifaddr en1 2>/dev/null) || local_ip=$(ifconfig 2>/dev/null | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $2}' | head -1) || local_ip="—"
+  echo ""
+  echo "  🌐  Public   $pub"
+  echo "  🏠  Local    $local_ip"
+  echo ""
+}
 
 # === nvm ===
 
@@ -38,16 +59,39 @@ add-zsh-hook chpwd load-nvmrc
 load-nvmrc
 
 # === npm (GitHub Packages via gh) ===
-# Delegates to bin/npm-gh so GITHUB_TOKEN is set per invocation; must run after nvm loads.
-if command -v npm-gh >/dev/null 2>&1; then
-  npm() { command npm-gh "$@"; }
-fi
+# Ensures active gh account has read:packages (login or refresh + OAuth as needed), then runs npm
+# with GITHUB_TOKEN from gh. Must run after nvm loads.
+_npm_ensure_gh_read_packages() {
+  [[ -n ${_LOGFOX_NPM_READ_PACKAGES_CACHED:-} ]] && return 0
+  command -v gh >/dev/null 2>&1 || return 0
+
+  local line host scopes
+  line=$(gh auth status --json hosts --jq -r '[.hosts | to_entries[] | .value[] | select(.active==true)][0] | "\(.host)\t\(.scopes)"' 2>/dev/null) || line=""
+  host=${line%%$'\t'*}
+  scopes=${line#*$'\t'}
+
+  if [[ -n $host && $scopes == *read:packages* ]]; then
+    _LOGFOX_NPM_READ_PACKAGES_CACHED=1
+    return 0
+  fi
+
+  if [[ -n $host ]] && gh auth token -h "$host" &>/dev/null; then
+    gh auth refresh -h "$host" -s read:packages && _LOGFOX_NPM_READ_PACKAGES_CACHED=1
+    return 0
+  fi
+
+  gh auth login -h "${host:-github.com}" -s read:packages -w && _LOGFOX_NPM_READ_PACKAGES_CACHED=1
+}
+
+npm() {
+  _npm_ensure_gh_read_packages
+  GITHUB_TOKEN=$(gh auth token 2>/dev/null) command npm "$@"
+}
 
 # === AWS SSO ===
-# Runs bin/awssso then exports AWS_PROFILE in this shell (a script alone cannot export to the parent).
 awssso() {
   : "${1:?usage: awssso <profile>}"
-  command awssso "$1" && export AWS_PROFILE="$1"
+  command aws sso login --profile "$1" && export AWS_PROFILE="$1"
 }
 
 # === starship ===
