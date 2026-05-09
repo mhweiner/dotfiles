@@ -100,6 +100,5 @@ cd ~/dotfiles && git pull && ./bootstrap.sh
 | `ll` | `.zshrc` | Long listing (`ls -lah`): all entries, human sizes, dotfiles. |
 | `git-cleanup` | `.zshrc` | Checkout/pull, prune `: gone]` branches (default **`main`**). |
 | `whatismyip` | `.zshrc` | Print public and local IP. |
-| `ghpk` | `.zshrc` | If **`gh`** is already logged in, **`gh auth refresh`** with **`read:packages`**; otherwise **`gh auth login -w`** with that scope (for **GitHub Packages** / **`npm`**). |
-| `npm` | `.zshrc` | Useful for **`npm install`** (and other **`npm`** commands) against **GitHub Packages** using **`GITHUB_TOKEN`** from **`gh`**; then real **`npm`** (after nvm). |
+| `npm` | `.zshrc` | Before each run: if **`gh`** is missing **`read:packages`** on the active host, **`gh auth refresh`** or **`gh auth login -w`** (OAuth prompts as usual); then **`GITHUB_TOKEN`** from **`gh`** and real **`npm`** (after nvm). |
 | `awssso` | `.zshrc` | **`aws sso login`**, then **`export AWS_PROFILE`**. |

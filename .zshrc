@@ -58,18 +58,33 @@ load-nvmrc() {
 add-zsh-hook chpwd load-nvmrc
 load-nvmrc
 
-# === GitHub Packages (gh read:packages) ===
-ghpk() {
-  if gh auth status &>/dev/null; then
-    gh auth refresh -s read:packages
-  else
-    gh auth login -s read:packages -w
+# === npm (GitHub Packages via gh) ===
+# Ensures active gh account has read:packages (login or refresh + OAuth as needed), then runs npm
+# with GITHUB_TOKEN from gh. Must run after nvm loads.
+_npm_ensure_gh_read_packages() {
+  [[ -n ${_LOGFOX_NPM_READ_PACKAGES_CACHED:-} ]] && return 0
+  command -v gh >/dev/null 2>&1 || return 0
+
+  local line host scopes
+  line=$(gh auth status --json hosts --jq -r '[.hosts | to_entries[] | .value[] | select(.active==true)][0] | "\(.host)\t\(.scopes)"' 2>/dev/null) || line=""
+  host=${line%%$'\t'*}
+  scopes=${line#*$'\t'}
+
+  if [[ -n $host && $scopes == *read:packages* ]]; then
+    _LOGFOX_NPM_READ_PACKAGES_CACHED=1
+    return 0
   fi
+
+  if [[ -n $host ]] && gh auth token -h "$host" &>/dev/null; then
+    gh auth refresh -h "$host" -s read:packages && _LOGFOX_NPM_READ_PACKAGES_CACHED=1
+    return 0
+  fi
+
+  gh auth login -h "${host:-github.com}" -s read:packages -w && _LOGFOX_NPM_READ_PACKAGES_CACHED=1
 }
 
-# === npm (GitHub Packages via gh) ===
-# GITHUB_TOKEN from gh per invocation; must run after nvm loads.
 npm() {
+  _npm_ensure_gh_read_packages
   GITHUB_TOKEN=$(gh auth token 2>/dev/null) command npm "$@"
 }
 
