@@ -58,6 +58,15 @@ load-nvmrc() {
 add-zsh-hook chpwd load-nvmrc
 load-nvmrc
 
+# === GitHub Packages (gh read:packages) ===
+ghpk() {
+  if gh auth status &>/dev/null; then
+    gh auth refresh -s read:packages
+  else
+    gh auth login -s read:packages -w
+  fi
+}
+
 # === npm (GitHub Packages via gh) ===
 # GITHUB_TOKEN from gh per invocation; must run after nvm loads.
 npm() {
