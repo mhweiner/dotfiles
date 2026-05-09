@@ -87,34 +87,20 @@ cd ~/dotfiles && git pull && ./bootstrap.sh
 | `starship.toml` | Starship prompt theme |
 | `iterm2/` | iTerm2 preferences (folder iTerm reads/writes) |
 | `fonts/` | Optional `.ttf` files copied to `~/Library/Fonts` |
-| `bin/` | Helper scripts symlinked to `~/.local/bin` |
+| `bin/` | Scripts symlinked to `~/.local/bin` (see **Helpers**) |
 | `install.sh` | `~/.zshrc` dotfiles include, optional `~/.vimrc` symlink, Starship, iTerm path, `bin`, fonts (no stdout) |
 | `bootstrap.sh` | Installs the table above, then runs `install.sh` |
 
 
-## Scripts in `bin/` 🧪
+## Helpers 🧪
 
-Symlinked to `~/.local/bin` by `install.sh`. Longer helpers stay here; short ones live in **`.zshrc`** (below).
+`install.sh` symlinks **`listenport`** into **`~/.local/bin`**. Everything else below is defined in **`~/dotfiles/.zshrc`** (mix of aliases and functions—same idea, different zsh mechanisms).
 
-| Command | Purpose |
-|---------|---------|
-| `listenport` | What is on a port; `-k <port>` kills it. |
-
-## Aliases
-
-**`.zshrc`** only (not **`bin/`**).
-
-| Alias | Runs as | Explanation |
-|-------|---------|-------------|
-| `ll` | `ls -lah` | Long listing: all entries, human sizes, dotfiles. |
-
-## Functions
-
-**`.zshrc`** only (not **`bin/`**).
-
-| Name | Note |
-|------|------|
-| `git-cleanup` | Checkout/pull, prune `: gone]` branches (default `main`). |
-| `whatismyip` | Public + local IP. |
-| `npm` | `GITHUB_TOKEN` from `gh`, then real `npm` (needs nvm loaded). |
-| `awssso` | `aws sso login`, then `export AWS_PROFILE`. |
+| Name | Where | What |
+|------|-------|------|
+| `listenport` | `bin/` | Port usage (`lsof`); **`-k <port>`** kills listeners. |
+| `ll` | `.zshrc` | Long listing (`ls -lah`): all entries, human sizes, dotfiles. |
+| `git-cleanup` | `.zshrc` | Checkout/pull, prune `: gone]` branches (default **`main`**). |
+| `whatismyip` | `.zshrc` | Print public and local IP. |
+| `npm` | `.zshrc` | **`GITHUB_TOKEN`** from **`gh`**, then real **`npm`** (after nvm). |
+| `awssso` | `.zshrc` | **`aws sso login`**, then **`export AWS_PROFILE`**. |
