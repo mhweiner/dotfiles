@@ -68,7 +68,7 @@ mkdir -p ~/.local/bin
 for f in git-cleanup whatismyip listenport; do
   [ -f "$DOTFILES/bin/$f" ] && ln -sf "$DOTFILES/bin/$f" ~/.local/bin/$f
 done
-# listenport replaced killport; remove stale symlink from older installs
+# Legacy symlink (helper removed from this repo)
 rm -f ~/.local/bin/killport
 
 if [ -d "$DOTFILES/fonts" ]; then

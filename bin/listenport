@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Usage: listenport [-k] <port>
-# Show processes using the port (lsof). With -k, kill them (same as old killport).
+# Show processes using the port (lsof). With -k, kill them.
 usage() {
   echo "Usage: listenport [-k] <port>" >&2
   echo "  Default: print lsof for that port." >&2
