@@ -7,3 +7,7 @@
 
 # Example: extra aliases or functions
 # alias myalias='some command'
+
+# Avoid exporting GITHUB_TOKEN here for every shell. It overrides `gh auth` and breaks
+# workflows in Cursor/VS Code terminals. For GitHub Packages with npm, use a wrapper:
+#   npm() { GITHUB_TOKEN=$(gh auth token 2>/dev/null) command npm "$@"; }

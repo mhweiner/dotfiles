@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Idempotent: safe to re-run. Symlinks are recreated; existing ~/.zshrc.local is never overwritten.
 set -e
 DOTFILES="$(cd "$(dirname "$0")" && pwd)"
 cd "$DOTFILES"
@@ -12,18 +13,12 @@ if [ -f ~/.zshrc ] && [ ! -L ~/.zshrc ]; then
 fi
 ln -sf "$DOTFILES/.zshrc" ~/.zshrc
 echo "  Linked ~/.zshrc"
-# .zshrc.local (user-owned, never overwritten). Support both home and repo dir.
+# ~/.zshrc.local — user-owned, never overwritten (single machine-specific file).
 if [ ! -f ~/.zshrc.local ]; then
   cp "$DOTFILES/zshrc.local.example" ~/.zshrc.local
   echo "  Created ~/.zshrc.local (edit for local overrides)"
 else
   echo "  ~/.zshrc.local exists (unchanged)"
-fi
-if [ ! -f "$DOTFILES/.zshrc.local" ]; then
-  cp "$DOTFILES/zshrc.local.example" "$DOTFILES/.zshrc.local"
-  echo "  Created $DOTFILES/.zshrc.local (optional; gitignored)"
-else
-  echo "  $DOTFILES/.zshrc.local exists (unchanged)"
 fi
 
 # starship

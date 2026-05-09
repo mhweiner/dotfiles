@@ -10,12 +10,18 @@ git clone https://github.com/mhweiner/dotfiles.git ~/dotfiles
 ~/dotfiles/bootstrap.sh
 ```
 
-`bootstrap.sh` installs everything below, wires up symlinks, and configures iTerm2. Safe to re-run — it skips anything already installed. Reopen iTerm2 when it's done.
+`bootstrap.sh` installs everything below, wires up symlinks, and configures iTerm2. **Safe to re-run** on a machine that is already set up: it skips Homebrew if present, skips each brew formula or cask that is already installed (it does **not** bulk-upgrade), skips nvm if `~/.nvm/nvm.sh` exists, skips Node if `node` is already on your `PATH`, then always runs `install.sh` (symlinks and iTerm prefs path are reapplied). Reopen iTerm2 when it is done.
 
-To pull updates later:
+To pull **dotfile config** updates on an existing machine (typical day-to-day):
 
 ```bash
-cd ~/dotfiles && git pull && ~/dotfiles/bootstrap.sh
+cd ~/dotfiles && git pull && ./install.sh
+```
+
+To also re-check Homebrew / nvm / Node / `open-prs` (same as a fresh machine, still non-destructive):
+
+```bash
+cd ~/dotfiles && git pull && ./bootstrap.sh
 ```
 
 ## What gets installed
@@ -35,7 +41,7 @@ cd ~/dotfiles && git pull && ~/dotfiles/bootstrap.sh
 
 | Path | What it does |
 |------|--------------|
-| `.zshrc` | PATH, aliases, nvm, starship init. Sources `~/.zshrc.local` for machine-specific overrides. |
+| `.zshrc` | PATH, aliases, nvm, starship init. Sources **`~/.zshrc.local`** only for machine-specific overrides. |
 | `starship.toml` | Starship prompt config |
 | `iterm2/` | iTerm2 preferences (auto-saved when you change settings) |
 | `fonts/` | 0xProto Nerd Font |
@@ -54,4 +60,6 @@ cd ~/dotfiles && git pull && ~/dotfiles/bootstrap.sh
 
 ## Local overrides
 
-Machine-specific config goes in `~/.zshrc.local` (and/or `~/dotfiles/.zshrc.local`, which is gitignored). Both are sourced at the end of `.zshrc` if they exist. Install never overwrites them.
+Machine-specific config lives in **`~/.zshrc.local`** only. It is sourced at the end of `.zshrc` if the file exists. `install.sh` creates it from `zshrc.local.example` once and **never overwrites** it.
+
+If you previously used **`~/dotfiles/.zshrc.local`**, merge anything you still need into `~/.zshrc.local` and remove the old file when you are ready; it is no longer sourced.

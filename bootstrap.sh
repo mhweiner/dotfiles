@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# Idempotent: safe to re-run on an already-configured Mac.
+# - Installs Homebrew only if missing; otherwise skips.
+# - Each brew formula/cask is skipped if already installed (does not upgrade).
+# - nvm is installed once; Node LTS is installed only if node is not on PATH.
+# - open-prs is re-downloaded each run so you pick up upstream script changes.
+# - Always runs install.sh (symlinks, iTerm prefs path); that script is safe to repeat.
 set -e
 
 DOTFILES="$(cd "$(dirname "$0")" && pwd)"
@@ -27,21 +33,31 @@ if ! command -v brew &>/dev/null; then
 fi
 eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null)" || eval "$(/usr/local/bin/brew shellenv 2>/dev/null)" || true
 
-# iTerm2
-echo "Installing iTerm2..."
-brew install --cask iterm2 2>/dev/null || echo "  already installed"
+brew_install_formula() {
+  local f="$1"
+  if brew list --formula "$f" &>/dev/null; then
+    echo "  $f already installed"
+  else
+    echo "Installing $f..."
+    brew install "$f"
+  fi
+}
 
-# Starship
-echo "Installing Starship..."
-brew install starship 2>/dev/null || echo "  already installed"
+brew_install_cask() {
+  local c="$1"
+  if brew list --cask "$c" &>/dev/null; then
+    echo "  $c already installed"
+  else
+    echo "Installing $c..."
+    brew install --cask "$c"
+  fi
+}
 
-# GitHub CLI
-echo "Installing GitHub CLI..."
-brew install gh 2>/dev/null || echo "  already installed"
-
-# AWS CLI
-echo "Installing AWS CLI..."
-brew install awscli 2>/dev/null || echo "  already installed"
+echo "Homebrew packages (skipped if already present)..."
+brew_install_cask iterm2
+brew_install_formula starship
+brew_install_formula gh
+brew_install_formula awscli
 
 # nvm + Node LTS
 if [ ! -s "$HOME/.nvm/nvm.sh" ]; then
