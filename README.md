@@ -2,7 +2,6 @@
 
 My personal macOS setup, built around a **terminal-focused workflow**: shell, prompt, common CLI tools, and small helpers. Feel free to fork, steal ideas, or copy bits wholesale; I put it here so others can use it too.
 
----
 
 ## Requirements 🍎
 
@@ -13,7 +12,6 @@ My personal macOS setup, built around a **terminal-focused workflow**: shell, pr
 xcode-select --install
 ```
 
----
 
 ## First-time setup 🚀
 
@@ -26,7 +24,6 @@ git clone https://github.com/mhweiner/dotfiles.git ~/dotfiles
 
 Quit and reopen **iTerm2** when the script finishes so it picks up the preferences folder.
 
----
 
 ## What `bootstrap.sh` installs 🧰
 
@@ -43,7 +40,6 @@ Quit and reopen **iTerm2** when the script finishes so it picks up the preferenc
 
 `bootstrap.sh` is **safe to run again** on an already set up Mac: it skips Homebrew if present, skips each formula or cask that is already installed (no mass upgrade), skips nvm if it is already installed, installs Node LTS only if `node` is missing, then runs **`install.sh`**.
 
----
 
 ## What `install.sh` does 🤫
 
@@ -56,7 +52,6 @@ Runs silently (no log spam — *stealth mode engaged*). It:
 5. Symlinks **`bin/`** helpers into **`~/.local/bin`**.
 6. Copies **fonts** from `~/dotfiles/fonts/` into `~/Library/Fonts/` when that directory exists (skips existing files).
 
----
 
 ## Where to edit things 📝
 
@@ -67,7 +62,6 @@ Runs silently (no log spam — *stealth mode engaged*). It:
 | Shared Vim | `~/dotfiles/vimrc` (used when `~/.vimrc` is the symlink install created) |
 | Machine-only Vim | Your own `~/.vimrc` — install leaves it untouched if it already exists |
 
----
 
 ## Updating ⬆️
 
@@ -83,7 +77,6 @@ cd ~/dotfiles && git pull && ./install.sh
 cd ~/dotfiles && git pull && ./bootstrap.sh
 ```
 
----
 
 ## Repository layout 📂
 
@@ -98,7 +91,6 @@ cd ~/dotfiles && git pull && ./bootstrap.sh
 | `install.sh` | `~/.zshrc` dotfiles include, optional `~/.vimrc` symlink, Starship, iTerm path, `bin`, fonts (no stdout) |
 | `bootstrap.sh` | Installs the table above, then runs `install.sh` |
 
----
 
 ## Scripts in `bin/` 🧪
 
