@@ -112,9 +112,9 @@ Symlinked to `~/.local/bin` by `install.sh`. Longer helpers stay here; short one
 
 **`.zshrc`** only (not **`bin/`**).
 
-| Alias | Runs as |
-|-------|---------|
-| `ll` | `ls -lah` |
+| Alias | Runs as | Explanation |
+|-------|---------|-------------|
+| `ll` | `ls -lah` | Long listing: all entries, human sizes, dotfiles. |
 
 ## Functions
 
