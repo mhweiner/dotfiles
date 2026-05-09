@@ -3,7 +3,7 @@
 export PATH="/opt/homebrew/bin:$PATH"
 export PATH="/opt/homebrew/opt/gnu-sed/libexec/gnubin:$PATH"
 export PATH="$HOME/.local/bin:$PATH" # cursor agent
-export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"
+[ -d "/opt/homebrew/opt/postgresql@16/bin" ] && export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"
 
 # === aliases ===
 
@@ -41,7 +41,4 @@ load-nvmrc
 
 eval "$(starship init zsh)"
 
-# === local overrides (not in repo, never overwritten by install) ===
-# Source both: home dir first, then repo dir (if you keep it next to zshrc.local.example). Both are gitignored.
-[ -f ~/.zshrc.local ] && . ~/.zshrc.local
-[ -f ~/dotfiles/.zshrc.local ] && . ~/dotfiles/.zshrc.local
+# Machine-only tweaks: edit ~/.zshrc outside the >>> dotfiles BEGIN block, or fork this repo.

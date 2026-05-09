@@ -1,6 +1,6 @@
 # dotfiles
 
-My personal Mac setup. This repo exists so I can clone it onto a new machine and be productive in minutes. Feel free to fork, steal ideas, or submit PRs.
+Personal macOS shell + terminal setup. Clone to **`~/dotfiles`** so paths match the README; `install.sh` embeds your clone path when it adds the stub to `~/.zshrc` and `~/.vimrc`.
 
 ## Setup
 
@@ -10,15 +10,45 @@ git clone https://github.com/mhweiner/dotfiles.git ~/dotfiles
 ~/dotfiles/bootstrap.sh
 ```
 
-`bootstrap.sh` installs everything below, wires up symlinks, and configures iTerm2. Safe to re-run — it skips anything already installed. Reopen iTerm2 when it's done.
+`bootstrap.sh` installs Homebrew packages, nvm, Node LTS, `open-prs`, then runs **`install.sh`**. **Safe to re-run** on an already-configured Mac: it skips Homebrew if present, skips each brew formula or cask that is already installed (it does **not** bulk-upgrade), skips nvm if `~/.nvm/nvm.sh` exists, skips Node if `node` is on your `PATH`, re-downloads `open-prs`, then runs `install.sh` again. Reopen iTerm2 when it finishes.
 
-To pull updates later:
+### How shell config is wired (Homebrew-style)
+
+- **Version-controlled config** lives in **`~/dotfiles/.zshrc`** in this repo (PATH, nvm, Starship, aliases — no `GITHUB_TOKEN` or other secrets).
+- **`~/.zshrc`** on the machine is **yours**: `install.sh` **creates** it if missing, or **appends** a single marked block if it already exists. It **never** replaces your whole `~/.zshrc`.
+- If you used an older install that **symlinked** `~/dotfiles/.zshrc` → `~/.zshrc`, the next `install.sh` removes that symlink and replaces it with the stub pattern.
+
+Put anything machine-specific in **`~/.zshrc`** above or below the `>>> dotfiles BEGIN` … `END` block (or fork this repo).
+
+### Vim
+
+- Defaults live in **`~/dotfiles/vimrc`** (syntax, numbers, undo dir, etc.).
+- **`~/.vimrc`** is created or gets an appended marked block that **`source`s** that file. Your existing `~/.vimrc` is **never** overwritten wholesale.
+
+## After clone: where to look
+
+| What you want | Where it is |
+|----------------|-------------|
+| Shared zsh (edit + `git pull`) | `~/dotfiles/.zshrc` |
+| This Mac only | `~/.zshrc` (outside the dotfiles block, or after it) |
+| Shared Vim | `~/dotfiles/vimrc` |
+| This Mac only | `~/.vimrc` (outside the dotfiles block) |
+
+## Pull updates
+
+Dotfile **content** (zsh, vim, starship, scripts):
 
 ```bash
-cd ~/dotfiles && git pull && ~/dotfiles/bootstrap.sh
+cd ~/dotfiles && git pull && ./install.sh
 ```
 
-## What gets installed
+Re-check **Homebrew / nvm / Node / open-prs**:
+
+```bash
+cd ~/dotfiles && git pull && ./bootstrap.sh
+```
+
+## What gets installed (bootstrap)
 
 | Tool | What it is |
 |------|------------|
@@ -29,18 +59,19 @@ cd ~/dotfiles && git pull && ~/dotfiles/bootstrap.sh
 | [AWS CLI](https://aws.amazon.com/cli/) (`aws`) | AWS from the terminal |
 | [nvm](https://github.com/nvm-sh/nvm) + Node LTS | Node.js version manager |
 | [open-prs](https://github.com/logfoxai/open-prs) | GitHub org PR dashboard TUI |
-| [0xProto Nerd Font](https://www.nerdfonts.com/) | Monospace font with icons |
+| [0xProto Nerd Font](https://www.nerdfonts.com/) | Monospace font with icons (if `fonts/` exists) |
 
-## What's in the repo
+## Repo layout
 
-| Path | What it does |
-|------|--------------|
-| `.zshrc` | PATH, aliases, nvm, starship init. Sources `~/.zshrc.local` for machine-specific overrides. |
-| `starship.toml` | Starship prompt config |
-| `iterm2/` | iTerm2 preferences (auto-saved when you change settings) |
-| `fonts/` | 0xProto Nerd Font |
-| `bin/` | CLI helpers (symlinked to `~/.local/bin`) |
-| `install.sh` | Symlinks config files and points iTerm at this repo |
+| Path | Role |
+|------|------|
+| `.zshrc` | Shared zsh config (sourced from `~/.zshrc` stub). |
+| `vimrc` | Shared Vim defaults (sourced from `~/.vimrc` stub). |
+| `starship.toml` | Starship prompt |
+| `iterm2/` | iTerm2 preferences folder |
+| `fonts/` | Nerd Font copies (optional) |
+| `bin/` | Helpers → `~/.local/bin` |
+| `install.sh` | Wires `~/.zshrc` / `~/.vimrc`, symlinks starship + bins, iTerm prefs path |
 | `bootstrap.sh` | Installs tools + runs `install.sh` |
 
 ## CLI helpers
@@ -49,9 +80,9 @@ cd ~/dotfiles && git pull && ~/dotfiles/bootstrap.sh
 |---------|-------------|
 | `git-cleanup` | Prune merged/gone branches. Default branch: `main`. |
 | `whatismyip` | Print public and local IP. |
-| `killport <port>` | Kill whatever's listening on a port. |
-| [`open-prs`](https://github.com/logfoxai/open-prs) `<org>` | Full-screen TUI dashboard for all open PRs across a GitHub org. Live CI badges, post-merge deploy tracking, clickable titles. `--once` for a one-shot print. Installed from [logfoxai/open-prs](https://github.com/logfoxai/open-prs). |
+| `killport <port>` | Kill whatever is listening on a port. |
+| [`open-prs`](https://github.com/logfoxai/open-prs) `<org>` | Org PR dashboard TUI; `--once` for a one-shot print. |
 
-## Local overrides
+## GitHub Packages / npm
 
-Machine-specific config goes in `~/.zshrc.local` (and/or `~/dotfiles/.zshrc.local`, which is gitignored). Both are sourced at the end of `.zshrc` if they exist. Install never overwrites them.
+Do **not** put `export GITHUB_TOKEN=…` in shared zsh. Prefer a per-command wrapper, e.g. `npm() { GITHUB_TOKEN=$(gh auth token 2>/dev/null) command npm "$@"; }` in your personal `~/.zshrc` if you need it.
