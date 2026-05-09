@@ -38,10 +38,10 @@ Quit and reopen **iTerm2** when the script finishes so it picks up the preferenc
 | 🐙 [GitHub CLI](https://cli.github.com/) (`gh`) | GitHub from the terminal | PRs, issues, `gh auth login` |
 | ☁️ [AWS CLI](https://aws.amazon.com/cli/) (`aws`) | AWS from the terminal | SSO, profiles, resource commands |
 | 📦 [nvm](https://github.com/nvm-sh/nvm) + Node **LTS** | Node version manager | Per-project Node versions via `.nvmrc` |
-| 🔭 [open-prs](https://github.com/logfoxai/open-prs) | Org-wide PR dashboard | TUI or `--once` summary for a GitHub org |
+| 🔭 [open-prs](https://github.com/logfoxai/open-prs) ([tap](https://github.com/logfoxai/homebrew-tap)) | Org-wide PR dashboard | TUI or `--once` summary for a GitHub org |
 | 🔤 [0xProto Nerd Font](https://www.nerdfonts.com/) | Monospace font with icons | Starship / terminal icons (if `fonts/` is present in the repo) |
 
-`bootstrap.sh` is **safe to run again** on an already set up Mac: it skips Homebrew if present, skips each formula or cask that is already installed (no mass upgrade), skips nvm if it is already installed, installs Node LTS only if `node` is missing, refreshes `open-prs`, then runs **`install.sh`**.
+`bootstrap.sh` is **safe to run again** on an already set up Mac: it skips Homebrew if present, skips each formula or cask that is already installed (no mass upgrade), skips nvm if it is already installed, installs Node LTS only if `node` is missing, then runs **`install.sh`**.
 
 ---
 
@@ -77,7 +77,7 @@ Runs silently (no log spam — *stealth mode engaged*). It:
 cd ~/dotfiles && git pull && ./install.sh
 ```
 
-**Toolchain as well** (Homebrew packages, nvm, Node check, `open-prs` refresh):
+**Toolchain as well** (Homebrew packages, nvm, Node check):
 
 ```bash
 cd ~/dotfiles && git pull && ./bootstrap.sh
