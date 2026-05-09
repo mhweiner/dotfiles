@@ -100,13 +100,12 @@ cd ~/dotfiles && git pull && ./bootstrap.sh
 
 ---
 
-## Helpers in `bin/` 🧪
+## Scripts in `bin/` 🧪
 
-These appear on `PATH` when `~/.local/bin` is on your `PATH` (set in `~/dotfiles/.zshrc`).
+These live in the repo under **`bin/`** and get symlinked to **`~/.local/bin`** by `install.sh` (same `PATH` entry as the rest of your dotfiles zsh config). They are separate from Homebrew-installed tools like `open-prs` — those are only in the **What `bootstrap.sh` installs** table above.
 
 | Command | Purpose |
 |---------|---------|
 | `git-cleanup` 🧹 | Prune merged and gone local branches (default base: `main`) |
 | `whatismyip` 🌍 | Show public and local IP addresses |
 | `killport` 💀 | Kill the process listening on a given TCP port |
-| `open-prs` 📋 | Dashboard of open PRs for a GitHub org (see upstream repo for flags) |
