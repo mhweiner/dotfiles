@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Usage: listenport [-k] <port>
+# Show processes using the port (lsof). With -k, kill them.
+usage() {
+  echo "Usage: listenport [-k] <port>" >&2
+  echo "  Default: print lsof for that port." >&2
+  echo "  -k: kill process(es) bound to that port." >&2
+}
+
+KILL=0
+while getopts kh opt; do
+  case "$opt" in
+    k) KILL=1 ;;
+    h) usage; exit 0 ;;
+    *) usage; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "${1:-}" ]; then
+  usage
+  exit 1
+fi
+port="$1"
+
+if [ "$KILL" = 1 ]; then
+  pids=$(lsof -ti ":$port" 2>/dev/null || true)
+  if [ -z "$pids" ]; then
+    echo "No process listening on port $port" >&2
+    exit 1
+  fi
+  kill $pids
+  exit 0
+fi
+
+out=$(lsof -nP -i ":$port" 2>/dev/null || true)
+if [ -z "$out" ]; then
+  echo "Nothing using port $port"
+  exit 0
+fi
+
+printf '%s\n' "$out"

@@ -3,8 +3,7 @@
 # - Installs Homebrew only if missing; otherwise skips.
 # - Each brew formula/cask is skipped if already installed (does not upgrade).
 # - nvm is installed once; Node LTS is installed only if node is not on PATH.
-# - open-prs is re-downloaded each run so you pick up upstream script changes.
-# - Always runs install.sh (zsh/vim stubs, symlinks, iTerm prefs path); that script is safe to repeat.
+# - Always runs install.sh (~/.zshrc wiring, optional ~/.vimrc symlink, iTerm prefs path); safe to repeat.
 set -e
 
 DOTFILES="$(cd "$(dirname "$0")" && pwd -P)"
@@ -34,12 +33,13 @@ fi
 eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null)" || eval "$(/usr/local/bin/brew shellenv 2>/dev/null)" || true
 
 brew_install_formula() {
-  local f="$1"
-  if brew list --formula "$f" &>/dev/null; then
-    echo "  $f already installed"
+  local spec="$1"
+  local name="${spec##*/}"
+  if brew list --formula "$name" &>/dev/null; then
+    echo "  $name already installed"
   else
-    echo "Installing $f..."
-    brew install "$f"
+    echo "Installing $spec..."
+    brew install "$spec"
   fi
 }
 
@@ -58,6 +58,7 @@ brew_install_cask iterm2
 brew_install_formula starship
 brew_install_formula gh
 brew_install_formula awscli
+brew_install_formula logfoxai/tap/open-prs
 
 # nvm + Node LTS
 if [ ! -s "$HOME/.nvm/nvm.sh" ]; then
@@ -74,13 +75,6 @@ if ! command -v node &>/dev/null; then
 else
   echo "Node already installed ($(node -v))"
 fi
-
-# open-prs (GitHub org PR dashboard)
-echo "Installing open-prs..."
-mkdir -p ~/.local/bin
-rm -f ~/.local/bin/open-prs
-curl -fsSL -o ~/.local/bin/open-prs https://raw.githubusercontent.com/logfoxai/open-prs/main/open-prs
-chmod +x ~/.local/bin/open-prs
 
 # Wire up symlinks, fonts, iTerm prefs
 echo ""

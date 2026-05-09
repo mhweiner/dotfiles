@@ -1,4 +1,4 @@
-" dotfiles/vimrc — sensible defaults (Vim 8+). Sourced from ~/.vimrc by install.sh (never overwrites ~/.vimrc).
+" dotfiles/vimrc — sensible defaults (Vim 8+). On a fresh install, ~/.vimrc may be a symlink here; otherwise use your own ~/.vimrc.
 
 set nocompatible
 syntax enable
