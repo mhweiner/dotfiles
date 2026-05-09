@@ -4,7 +4,7 @@
 # - Each brew formula/cask is skipped if already installed (does not upgrade).
 # - nvm is installed once; Node LTS is installed only if node is not on PATH.
 # - open-prs is re-downloaded each run so you pick up upstream script changes.
-# - Always runs install.sh (zsh/vim stubs, symlinks, iTerm prefs path); that script is safe to repeat.
+# - Always runs install.sh (~/.zshrc wiring, optional ~/.vimrc symlink, iTerm prefs path); safe to repeat.
 set -e
 
 DOTFILES="$(cd "$(dirname "$0")" && pwd -P)"

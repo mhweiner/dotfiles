@@ -17,7 +17,7 @@ xcode-select --install
 
 ## First-time setup
 
-Clone into **`~/dotfiles`** (the install script records this path in your stub **`~/.zshrc`**).
+Clone into **`~/dotfiles`** (the install script adds a line to **`~/.zshrc`** that sources this repo, using your real clone path).
 
 ```bash
 git clone https://github.com/mhweiner/dotfiles.git ~/dotfiles
@@ -95,7 +95,7 @@ cd ~/dotfiles && git pull && ./bootstrap.sh
 | `iterm2/` | iTerm2 preferences (folder iTerm reads/writes) |
 | `fonts/` | Optional `.ttf` files copied to `~/Library/Fonts` |
 | `bin/` | Helper scripts symlinked to `~/.local/bin` |
-| `install.sh` | Zsh stub + optional `~/.vimrc` symlink, Starship, iTerm path, `bin`, fonts (no stdout) |
+| `install.sh` | `~/.zshrc` dotfiles include, optional `~/.vimrc` symlink, Starship, iTerm path, `bin`, fonts (no stdout) |
 | `bootstrap.sh` | Installs the table above, then runs `install.sh` |
 
 ---
