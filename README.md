@@ -120,4 +120,4 @@ In **`.zshrc`** (not **`bin/`**).
 
 | Alias | Purpose |
 |-------|---------|
-| `ll` | `ls -lah` |
+| `ll` | Long listing — runs `ls -lah`. |
