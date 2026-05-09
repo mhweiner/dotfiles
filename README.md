@@ -94,8 +94,6 @@ cd ~/dotfiles && git pull && ./bootstrap.sh
 
 ## Helpers 🧪
 
-`install.sh` symlinks **`listenport`** into **`~/.local/bin`**. Everything else below is defined in **`~/dotfiles/.zshrc`** (mix of aliases and functions—same idea, different zsh mechanisms).
-
 | Name | Where | What |
 |------|-------|------|
 | `listenport` | `bin/` | Port usage (`lsof`); **`-k <port>`** kills listeners. |
