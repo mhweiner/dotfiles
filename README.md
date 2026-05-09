@@ -1,6 +1,6 @@
-# dotfiles 🦊
+# ⭐ dotfiles 🦊
 
-Reproducible macOS setup for a terminal-focused workflow: shell, prompt, common CLI tools, and small helpers.
+My personal macOS terminal setup—shell, prompt, common CLI tools, and a few small helpers. Feel free to fork, steal ideas, or copy bits wholesale; I put it here so others can use it too.
 
 ---
 
