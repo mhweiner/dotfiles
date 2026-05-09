@@ -1,2 +1,6 @@
-# Local overrides — user can put .zshrc.local here; we source it but never commit it
+# Legacy local override filename (no longer used)
 .zshrc.local
+
+# Editor cruft
+*.swp
+.*.swp
