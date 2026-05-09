@@ -102,12 +102,22 @@ cd ~/dotfiles && git pull && ./bootstrap.sh
 
 ## Scripts in `bin/` 🧪
 
-These live in the repo under **`bin/`** and get symlinked to **`~/.local/bin`** by `install.sh` (same `PATH` entry as the rest of your dotfiles zsh config). They are separate from Homebrew-installed tools like `open-prs` — those are only in the **What `bootstrap.sh` installs** table above.
+Symlinked to `~/.local/bin` by `install.sh`.
 
 | Command | Purpose |
 |---------|---------|
-| `git-cleanup` 🧹 | Prune merged and gone local branches (default base: `main`) |
-| `whatismyip` 🌍 | Show public and local IP addresses |
-| `listenport` 👀 | Show what is using a port (`lsof`). **`listenport -k <port>`** kills those processes. |
-| `npm-gh` 📦 | Run **`npm`** with **`GITHUB_TOKEN`** from **`gh auth token`** (for GitHub Packages). Your **`.zshrc`** defines a **`npm`** function that calls this when `npm-gh` is on `PATH` (after `install.sh`). |
-| `awssso` ☁️ | **`aws sso login --profile <profile>`**. Your **`.zshrc`** defines an **`awssso`** function that runs this binary then **`export AWS_PROFILE=<profile>`** in the current shell. |
+| `git-cleanup` | Prune gone local branches (default `main`). |
+| `whatismyip` | Public and local IPs. |
+| `listenport` | What is on a port; `-k <port>` kills it. |
+| `npm-gh` | `npm` with `GITHUB_TOKEN` from `gh`. |
+| `awssso` | `aws sso login --profile <profile>`. |
+
+`.zshrc`: `npm` → `npm-gh`; `awssso` also exports `AWS_PROFILE` after login.
+
+## Aliases
+
+In **`.zshrc`** (not **`bin/`**).
+
+| Alias | Purpose |
+|-------|---------|
+| `ll` | `ls -lah` |
