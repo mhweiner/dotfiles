@@ -108,4 +108,5 @@ These live in the repo under **`bin/`** and get symlinked to **`~/.local/bin`** 
 |---------|---------|
 | `git-cleanup` 🧹 | Prune merged and gone local branches (default base: `main`) |
 | `whatismyip` 🌍 | Show public and local IP addresses |
-| `killport` 💀 | Kill the process listening on a given TCP port |
+| `listenport` 👀 | Show what is using a port (`lsof`; pair with `killport`) |
+| `killport` 💀 | Kill whatever is listening on a given port |

@@ -8,7 +8,7 @@ export PATH="$HOME/.local/bin:$PATH" # cursor agent
 # === aliases ===
 
 alias ll='ls -lah'
-# Helpers (git-cleanup, whatismyip, killport) → ~/.local/bin via install.sh
+# Helpers (git-cleanup, whatismyip, listenport, killport) → ~/.local/bin via install.sh
 
 # === nvm ===
 
