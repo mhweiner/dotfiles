@@ -100,5 +100,5 @@ cd ~/dotfiles && git pull && ./bootstrap.sh
 | `ll` | `.zshrc` | Long listing (`ls -lah`): all entries, human sizes, dotfiles. |
 | `git-cleanup` | `.zshrc` | Checkout/pull, prune `: gone]` branches (default **`main`**). |
 | `whatismyip` | `.zshrc` | Print public and local IP. |
-| `npm` | `.zshrc` | **GitHub Packages** installs locally: **`GITHUB_TOKEN`** from **`gh`**, then **`npm`** (after nvm). |
+| `npm` | `.zshrc` | Overrides **`npm`** so installs can use **GitHub Packages** with **`GITHUB_TOKEN`** from **`gh`** (after nvm). |
 | `awssso` | `.zshrc` | **`aws sso login`**, then **`export AWS_PROFILE`**. |
