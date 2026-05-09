@@ -116,8 +116,8 @@ Symlinked to `~/.local/bin` by `install.sh`.
 
 ## Aliases
 
-In **`.zshrc`** (not **`bin/`**).
+**`.zshrc`** only (not **`bin/`**).
 
-| Alias | Purpose |
+| Alias | Runs as |
 |-------|---------|
-| `ll` | Long listing — runs `ls -lah`. |
+| `ll` | `ls -lah` |
