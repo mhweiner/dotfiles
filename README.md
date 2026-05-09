@@ -17,7 +17,7 @@ xcode-select --install
 
 ## First-time setup
 
-Clone into **`~/dotfiles`** (the install script records this path in your stub `~/.zshrc` / `~/.vimrc`).
+Clone into **`~/dotfiles`** (the install script records this path in your stub **`~/.zshrc`**).
 
 ```bash
 git clone https://github.com/mhweiner/dotfiles.git ~/dotfiles
@@ -50,7 +50,7 @@ Quit and reopen **iTerm2** when the script finishes so it picks up the preferenc
 Runs silently. It:
 
 1. Ensures **`~/.zshrc`** contains a small, idempotent block that **`source`s** `~/dotfiles/.zshrc` (shared zsh config from this repo). If `~/.zshrc` does not exist, it creates it; otherwise it **appends** the block only if it is missing. Your file is never replaced wholesale.
-2. Does the same for **`~/.vimrc`** → **`~/dotfiles/vimrc`** (shared Vim defaults).
+2. If **`~/.vimrc` does not exist yet**, creates **`~/.vimrc`** as a **symlink** to **`~/dotfiles/vimrc`**. If you already have a `~/.vimrc`, install **does not** change it (no appends, no `source` injection).
 3. Symlinks **`starship.toml`** into `~/.config/`.
 4. Points **iTerm2** at `~/dotfiles/iterm2` for preferences.
 5. Symlinks **`bin/`** helpers into **`~/.local/bin`**.
@@ -64,8 +64,8 @@ Runs silently. It:
 |------|-------------------|
 | Shared zsh (commit in this repo) | `~/dotfiles/.zshrc` |
 | Machine-only zsh | `~/.zshrc` (outside the `>>> dotfiles BEGIN` … `END` block, or after it) |
-| Shared Vim | `~/dotfiles/vimrc` |
-| Machine-only Vim | `~/.vimrc` (outside the dotfiles block) |
+| Shared Vim | `~/dotfiles/vimrc` (used when `~/.vimrc` is the symlink install created) |
+| Machine-only Vim | Your own `~/.vimrc` — install leaves it untouched if it already exists |
 
 ---
 
@@ -95,7 +95,7 @@ cd ~/dotfiles && git pull && ./bootstrap.sh
 | `iterm2/` | iTerm2 preferences (folder iTerm reads/writes) |
 | `fonts/` | Optional `.ttf` files copied to `~/Library/Fonts` |
 | `bin/` | Helper scripts symlinked to `~/.local/bin` |
-| `install.sh` | Wires rc files, symlinks, iTerm, fonts (no stdout) |
+| `install.sh` | Zsh stub + optional `~/.vimrc` symlink, Starship, iTerm path, `bin`, fonts (no stdout) |
 | `bootstrap.sh` | Installs the table above, then runs `install.sh` |
 
 ---

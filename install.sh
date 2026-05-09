@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Idempotent: safe to re-run. Wires ~/.zshrc and ~/.vimrc with marked blocks; never replaces whole files.
+# Idempotent: safe to re-run. Wires ~/.zshrc with a marked source block; symlinks ~/.vimrc only if absent.
 set -e
 DOTFILES="$(cd "$(dirname "$0")" && pwd -P)"
 cd "$DOTFILES"
@@ -45,37 +45,18 @@ EOF
   fi
 }
 
-wire_vimrc() {
+# Vim: only symlink ~/.vimrc → repo vimrc when there is no ~/.vimrc yet (no append — avoids
+# re-sourcing shared config after the user's own ~/.vimrc settings).
+link_vimrc_if_absent() {
   local home_vim="${HOME}/.vimrc"
-  if [[ -f "${home_vim}" ]] && grep -qF "${MARK_BEGIN}" "${home_vim}"; then
+  if [[ -e "${home_vim}" ]] || [[ -L "${home_vim}" ]]; then
     return 0
   fi
-
-  local blk
-  blk=$(
-    cat <<EOF
-
-" ${MARK_BEGIN}
-if filereadable('${DOTFILES}/vimrc')
-  source ${DOTFILES}/vimrc
-endif
-" ${MARK_END}
-EOF
-  )
-
-  if [[ ! -f "${home_vim}" ]]; then
-    cat <<EOF >"${home_vim}"
-" ~/.vimrc — add your own settings above or below the dotfiles block.
-" Shared Vim defaults: https://github.com/mhweiner/dotfiles
-${blk}
-EOF
-  else
-    printf '%s' "${blk}" >>"${home_vim}"
-  fi
+  ln -sf "${DOTFILES}/vimrc" "${home_vim}"
 }
 
 wire_zshrc
-wire_vimrc
+link_vimrc_if_absent
 
 mkdir -p ~/.config
 ln -sf "$DOTFILES/starship.toml" ~/.config/starship.toml
