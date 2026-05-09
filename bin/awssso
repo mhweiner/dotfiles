@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-# SSO login only; use the awssso shell function from .zshrc to also set AWS_PROFILE in your session.
-profile="${1:?usage: awssso <profile>}"
-exec aws sso login --profile "$profile"

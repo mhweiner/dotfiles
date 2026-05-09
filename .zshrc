@@ -8,7 +8,28 @@ export PATH="$HOME/.local/bin:$PATH" # cursor agent
 # === aliases ===
 
 alias ll='ls -lah'
-# Helpers (git-cleanup, whatismyip, listenport, npm-gh, awssso) → ~/.local/bin via install.sh
+
+# === shell functions (short helpers; `listenport` stays in bin/) ===
+
+git-cleanup() {
+  local branch="${1:-main}"
+  git checkout "$branch" && git pull -p
+  local gone
+  gone=$(git branch -vv | grep ': gone]' | awk '{print $1}' | grep -vE '^(main|dev|master)$')
+  if [ -n "$gone" ]; then
+    echo "$gone" | xargs git branch -D
+  fi
+}
+
+whatismyip() {
+  local pub local_ip
+  pub=$(curl -s --max-time 3 https://checkip.amazonaws.com 2>/dev/null) || pub="—"
+  local_ip=$(ipconfig getifaddr en0 2>/dev/null) || local_ip=$(ipconfig getifaddr en1 2>/dev/null) || local_ip=$(ifconfig 2>/dev/null | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $2}' | head -1) || local_ip="—"
+  echo ""
+  echo "  🌐  Public   $pub"
+  echo "  🏠  Local    $local_ip"
+  echo ""
+}
 
 # === nvm ===
 
@@ -38,16 +59,15 @@ add-zsh-hook chpwd load-nvmrc
 load-nvmrc
 
 # === npm (GitHub Packages via gh) ===
-# Delegates to bin/npm-gh so GITHUB_TOKEN is set per invocation; must run after nvm loads.
-if command -v npm-gh >/dev/null 2>&1; then
-  npm() { command npm-gh "$@"; }
-fi
+# GITHUB_TOKEN from gh per invocation; must run after nvm loads.
+npm() {
+  GITHUB_TOKEN=$(gh auth token 2>/dev/null) command npm "$@"
+}
 
 # === AWS SSO ===
-# Runs bin/awssso then exports AWS_PROFILE in this shell (a script alone cannot export to the parent).
 awssso() {
   : "${1:?usage: awssso <profile>}"
-  command awssso "$1" && export AWS_PROFILE="$1"
+  command aws sso login --profile "$1" && export AWS_PROFILE="$1"
 }
 
 # === starship ===

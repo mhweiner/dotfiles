@@ -65,11 +65,11 @@ defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
 defaults write com.googlecode.iterm2 PrefsCustomFolder -string "$DOTFILES/iterm2"
 
 mkdir -p ~/.local/bin
-for f in git-cleanup whatismyip listenport npm-gh awssso; do
+for f in listenport; do
   [ -f "$DOTFILES/bin/$f" ] && ln -sf "$DOTFILES/bin/$f" ~/.local/bin/$f
 done
-# Legacy symlink (helper removed from this repo)
-rm -f ~/.local/bin/killport
+# Legacy symlinks (helpers removed or moved into dotfiles .zshrc)
+rm -f ~/.local/bin/killport ~/.local/bin/npm-gh ~/.local/bin/awssso ~/.local/bin/git-cleanup ~/.local/bin/whatismyip
 
 if [ -d "$DOTFILES/fonts" ]; then
   mkdir -p ~/Library/Fonts
