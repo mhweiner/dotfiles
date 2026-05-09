@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Run npm with GITHUB_TOKEN from gh (GitHub Packages). One-time: gh auth login -s read:packages
+export GITHUB_TOKEN="$(gh auth token 2>/dev/null)"
+exec npm "$@"

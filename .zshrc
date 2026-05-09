@@ -8,7 +8,7 @@ export PATH="$HOME/.local/bin:$PATH" # cursor agent
 # === aliases ===
 
 alias ll='ls -lah'
-# Helpers (git-cleanup, whatismyip, listenport) → ~/.local/bin via install.sh
+# Helpers (git-cleanup, whatismyip, listenport, npm-gh, awssso) → ~/.local/bin via install.sh
 
 # === nvm ===
 
@@ -36,6 +36,19 @@ load-nvmrc() {
 }
 add-zsh-hook chpwd load-nvmrc
 load-nvmrc
+
+# === npm (GitHub Packages via gh) ===
+# Delegates to bin/npm-gh so GITHUB_TOKEN is set per invocation; must run after nvm loads.
+if command -v npm-gh >/dev/null 2>&1; then
+  npm() { command npm-gh "$@"; }
+fi
+
+# === AWS SSO ===
+# Runs bin/awssso then exports AWS_PROFILE in this shell (a script alone cannot export to the parent).
+awssso() {
+  : "${1:?usage: awssso <profile>}"
+  command awssso "$1" && export AWS_PROFILE="$1"
+}
 
 # === starship ===
 

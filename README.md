@@ -109,3 +109,5 @@ These live in the repo under **`bin/`** and get symlinked to **`~/.local/bin`** 
 | `git-cleanup` 🧹 | Prune merged and gone local branches (default base: `main`) |
 | `whatismyip` 🌍 | Show public and local IP addresses |
 | `listenport` 👀 | Show what is using a port (`lsof`). **`listenport -k <port>`** kills those processes. |
+| `npm-gh` 📦 | Run **`npm`** with **`GITHUB_TOKEN`** from **`gh auth token`** (for GitHub Packages). Your **`.zshrc`** defines a **`npm`** function that calls this when `npm-gh` is on `PATH` (after `install.sh`). |
+| `awssso` ☁️ | **`aws sso login --profile <profile>`**. Your **`.zshrc`** defines an **`awssso`** function that runs this binary then **`export AWS_PROFILE=<profile>`** in the current shell. |
