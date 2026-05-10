@@ -100,5 +100,5 @@ cd ~/dotfiles && git pull && ./bootstrap.sh
 | `ll` | `.zshrc` | Long listing (`ls -lah`): all entries, human sizes, dotfiles. |
 | `git-cleanup` | `.zshrc` | Checkout/pull, prune `: gone]` branches (default **`main`**). |
 | `whatismyip` | `.zshrc` | Print public and local IP. |
-| `npm` | `.zshrc` | Overrides **`npm`** so installs use **`GITHUB_TOKEN`** from **`gh auth token`** for **GitHub Packages**, and ensures **`gh`** has the **`read:packages`** scope when it is missing. |
+| `npmgh` | `.zshrc` | **`npmgh install`**, **`npmgh ci`**, etc. — same as **`npm`** but sets **`GITHUB_TOKEN`** from **`gh auth token`** for **GitHub Packages** and ensures **`read:packages`** on **`gh`** when missing. Plain **`npm`** is not wrapped (so **`npm link`** never forces OAuth). |
 | `awssso` | `.zshrc` | **`aws sso login`**, then **`export AWS_PROFILE`**. |
