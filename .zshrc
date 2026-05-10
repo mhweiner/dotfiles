@@ -58,10 +58,14 @@ load-nvmrc() {
 add-zsh-hook chpwd load-nvmrc
 load-nvmrc
 
-# === npm (GitHub Packages via gh) ===
-# Ensures active gh account has read:packages (login or refresh + OAuth as needed), then runs npm
-# with GITHUB_TOKEN from gh. Must run after nvm loads.
-_npm_ensure_gh_read_packages() {
+# === npmgh (GitHub Packages via gh) ===
+# Use **`npmgh`** like **`npm`** when a project depends on **GitHub Packages** (e.g. first
+# **`npmgh i`** / **`npmgh ci`** in chroniton). Plain **`npm`** is unwrapped so **`npm link`**
+# and normal installs never block on OAuth.
+#
+# Ensures active gh account has read:packages (refresh or browser login as needed), then runs
+# npm with GITHUB_TOKEN from gh. Must run after nvm loads.
+_npmgh_ensure_gh_read_packages() {
   [[ -n ${_LOGFOX_NPM_READ_PACKAGES_CACHED:-} ]] && return 0
   command -v gh >/dev/null 2>&1 || return 0
 
@@ -83,8 +87,8 @@ _npm_ensure_gh_read_packages() {
   gh auth login -h "${host:-github.com}" -s read:packages -w && _LOGFOX_NPM_READ_PACKAGES_CACHED=1
 }
 
-npm() {
-  _npm_ensure_gh_read_packages
+npmgh() {
+  _npmgh_ensure_gh_read_packages
   GITHUB_TOKEN=$(gh auth token 2>/dev/null) command npm "$@"
 }
 
