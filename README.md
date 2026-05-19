@@ -1,11 +1,11 @@
 # ✨ dotfiles
 
-My personal macOS setup, built around a **terminal-focused workflow**: shell, prompt, common CLI tools, and small helpers. Feel free to fork, steal ideas, or copy bits wholesale; I put it here so others can use it too.
+Personal macOS terminal setup: shell config, prompt, common CLI tools, and small helpers.
 
 
 ## Requirements 🍎
 
-- macOS  
+- macOS
 - [Xcode Command Line Tools](https://developer.apple.com/documentation/xcode/installing-the-command-line-tools) (includes `git`)
 
 ```bash
@@ -15,14 +15,14 @@ xcode-select --install
 
 ## First-time setup 🚀
 
-Clone into **`~/dotfiles`** (the install script adds a line to **`~/.zshrc`** that sources this repo, using your real clone path).
+Clone into **`~/dotfiles`** and run install.
 
 ```bash
 git clone https://github.com/mhweiner/dotfiles.git ~/dotfiles
 ~/dotfiles/install.sh
 ```
 
-Quit and reopen **iTerm2** when the script finishes so it picks up the preferences folder.
+After install, quit and reopen **iTerm2** so it reloads preferences.
 
 
 ## What `install.sh` installs 🧰
@@ -36,21 +36,21 @@ Quit and reopen **iTerm2** when the script finishes so it picks up the preferenc
 | ☁️ [AWS CLI](https://aws.amazon.com/cli/) (`aws`) | AWS from the terminal | SSO, profiles, resource commands |
 | 📦 [nvm](https://github.com/nvm-sh/nvm) + Node **LTS** | Node version manager | Per-project Node versions via `.nvmrc` |
 | 🔭 [open-prs](https://github.com/logfoxai/open-prs) ([tap](https://github.com/logfoxai/homebrew-tap)) | Org-wide PR dashboard | TUI or `--once` summary for a GitHub org |
-| 🔤 [0xProto Nerd Font](https://www.nerdfonts.com/) | Monospace font with icons | Starship / terminal icons (`font-0xproto-nerd-font` cask) |
+| 🔤 [Hack Nerd Font](https://www.nerdfonts.com/) | Monospace font with icons | Starship / terminal icons (`font-hack-nerd-font` cask) |
 
-`install.sh` is **safe to run again** on an already set up Mac: it skips Homebrew if present, skips each formula or cask that is already installed (no mass upgrade), skips nvm if it is already installed, installs Node LTS only if `node` is missing, then applies dotfile wiring.
+`install.sh` is safe to rerun. It skips already-installed packages and only installs Node LTS when `node` is missing.
 
 
 ## What `install.sh` configures 🤫
 
-Runs silently (no log spam — *stealth mode engaged*). It:
+It configures:
 
-1. Ensures **`~/.zshrc`** contains a small, idempotent block that **`source`s** `~/dotfiles/.zshrc` (shared zsh config from this repo). If `~/.zshrc` does not exist, it creates it; otherwise it **appends** the block only if it is missing. Your file is never replaced wholesale.
+1. Ensures **`~/.zshrc`** includes an idempotent block that `source`s `~/dotfiles/.zshrc`.
 2. If **`~/.vimrc`** already exists, prompts whether to overwrite it with a symlink to **`~/dotfiles/vimrc`**.
 3. Symlinks **`starship.toml`** into `~/.config/`.
-4. Points **iTerm2** at `~/dotfiles/iterm2` for preferences (prompts before replacing a different existing prefs folder).
+4. Points **iTerm2** at `~/dotfiles/iterm2` (prompts before replacing a different prefs folder).
 5. Symlinks **`bin/`** helpers into **`~/.local/bin`**.
-6. Sets Cursor user terminal settings in `~/Library/Application Support/Cursor/User/settings.json` (zsh login shell, iTerm external terminal, Nerd Font stack).
+6. Sets Cursor user terminal settings in `~/Library/Application Support/Cursor/User/settings.json` (zsh login shell, iTerm external terminal, Nerd Font stack), and prompts before overwriting different existing terminal settings.
 
 
 ## Where to edit things 📝
@@ -65,13 +65,13 @@ Runs silently (no log spam — *stealth mode engaged*). It:
 
 ## Updating ⬆️
 
-**Config + toolchain** (recommended, single command):
+**Everything** (recommended):
 
 ```bash
 cd ~/dotfiles && git pull && ./install.sh
 ```
 
-**Config only** (skip Homebrew/nvm/Node bootstrap):
+**Config only** (skip Homebrew/nvm/Node):
 
 ```bash
 cd ~/dotfiles && git pull && DOTFILES_SKIP_PACKAGES=1 ./install.sh
@@ -87,8 +87,7 @@ cd ~/dotfiles && git pull && DOTFILES_SKIP_PACKAGES=1 ./install.sh
 | `starship.toml` | Starship prompt theme |
 | `iterm2/` | iTerm2 preferences (folder iTerm reads/writes) |
 | `bin/` | Scripts symlinked to `~/.local/bin` (see **Helpers**) |
-| `install.sh` | Single entrypoint: Homebrew packages, nvm/Node check, `~/.zshrc` include, optional `~/.vimrc` overwrite prompt, Starship, iTerm path, `bin`, Cursor terminal settings |
-| `bootstrap.sh` | Compatibility wrapper that forwards to `install.sh` |
+| `install.sh` | Installs packages, checks nvm/Node, wires `~/.zshrc`, optionally replaces `~/.vimrc`, configures iTerm/Cursor terminal settings, and links `bin/` helpers |
 
 
 ## Helpers 🧪

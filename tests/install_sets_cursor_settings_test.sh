@@ -43,10 +43,10 @@ assert settings["window.commandCenter"] is True
 assert settings["terminal.external.osxExec"] == "/Applications/iTerm.app"
 assert settings["terminal.integrated.defaultProfile.osx"] == "zsh"
 assert settings["terminal.integrated.fontSize"] == 13
-assert settings["terminal.integrated.cursorStyle"] == "line"
+assert settings["terminal.integrated.cursorStyle"] == "block"
 assert settings["terminal.integrated.shellIntegration.enabled"] is True
-assert settings["terminal.integrated.gpuAcceleration"] == "off"
-assert settings["terminal.integrated.fontFamily"] == "0xProto Nerd Font Mono, 0xProtoNerdFontMono-Regular, Menlo, monospace"
+assert settings["terminal.integrated.gpuAcceleration"] == "on"
+assert settings["terminal.integrated.fontFamily"] == "Hack Nerd Font Mono, Menlo, monospace"
 
 profiles = settings["terminal.integrated.profiles.osx"]
 assert "fish" in profiles

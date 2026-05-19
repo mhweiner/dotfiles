@@ -57,13 +57,33 @@ known_cask_app_bundle_path() {
   esac
 }
 
+cask_artifacts_present() {
+  local c="$1"
+  case "$c" in
+    iterm2)
+      [ -d "${APPLICATIONS_DIR}/iTerm.app" ]
+      ;;
+    font-hack-nerd-font)
+      [ -f "${HOME}/Library/Fonts/HackNerdFontMono-Regular.ttf" ]
+      ;;
+    *)
+      return 0
+      ;;
+  esac
+}
+
 brew_install_cask() {
   local c="$1"
   local app_bundle_path=""
   app_bundle_path="$(known_cask_app_bundle_path "$c" 2>/dev/null || true)"
 
   if brew list --cask "$c" &>/dev/null; then
-    echo "  $c already installed"
+    if cask_artifacts_present "$c"; then
+      echo "  $c already installed"
+    else
+      echo "  $c is marked installed, but local files are missing. Reinstalling..."
+      brew reinstall --cask "$c" || brew install --cask "$c"
+    fi
   elif [ -n "$app_bundle_path" ] && [ -d "$app_bundle_path" ]; then
     if prompt_yes_no "  $c app exists at $app_bundle_path. Overwrite/reinstall with Homebrew cask?"; then
       echo "  Reinstalling $c..."
@@ -102,7 +122,7 @@ install_packages() {
 
   echo "  Homebrew packages (skipped if already present)..."
   brew_install_cask iterm2
-  brew_install_cask font-0xproto-nerd-font
+  brew_install_cask font-hack-nerd-font
   brew_install_formula starship
   brew_install_formula gh
   brew_install_formula awscli
@@ -197,6 +217,47 @@ configure_iterm2_prefs() {
   defaults write com.googlecode.iterm2 PrefsCustomFolder -string "${desired_folder}"
 }
 
+cursor_settings_overwrite_prompt_needed() {
+  local cursor_settings_path="$1"
+  CURSOR_SETTINGS_PATH="${cursor_settings_path}" python3 <<'PY'
+import json
+import os
+from pathlib import Path
+
+path = Path(os.environ["CURSOR_SETTINGS_PATH"])
+if not path.exists():
+    raise SystemExit(1)
+
+data = json.loads(path.read_text())
+if not isinstance(data, dict):
+    raise SystemExit(0)
+
+desired = {
+    "terminal.external.osxExec": "/Applications/iTerm.app",
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "terminal.integrated.fontFamily": "Hack Nerd Font Mono, Menlo, monospace",
+    "terminal.integrated.fontSize": 13,
+    "terminal.integrated.cursorStyle": "block",
+    "terminal.integrated.shellIntegration.enabled": True,
+    "terminal.integrated.gpuAcceleration": "on",
+}
+
+for key, value in desired.items():
+    if key in data and data[key] != value:
+        raise SystemExit(0)
+
+profiles_key = "terminal.integrated.profiles.osx"
+if profiles_key in data:
+    profiles = data[profiles_key]
+    if not isinstance(profiles, dict):
+        raise SystemExit(0)
+    if "zsh" in profiles and profiles["zsh"] != {"path": "zsh", "args": ["-l"]}:
+        raise SystemExit(0)
+
+raise SystemExit(1)
+PY
+}
+
 configure_cursor_terminal_settings() {
   local cursor_settings_dir="${HOME}/Library/Application Support/Cursor/User"
   local cursor_settings_path="${cursor_settings_dir}/settings.json"
@@ -208,6 +269,13 @@ configure_cursor_terminal_settings() {
       printf '%s\n' '{}' >"${cursor_settings_path}"
     else
       echo "  Keeping existing Cursor settings.json"
+      return 0
+    fi
+  fi
+
+  if cursor_settings_overwrite_prompt_needed "${cursor_settings_path}"; then
+    if ! prompt_yes_no "  Cursor terminal settings already exist. Overwrite with dotfiles defaults?"; then
+      echo "  Keeping existing Cursor terminal settings"
       return 0
     fi
   fi
@@ -232,11 +300,11 @@ if not isinstance(profiles, dict):
 profiles["zsh"] = {"path": "zsh", "args": ["-l"]}
 data["terminal.integrated.profiles.osx"] = profiles
 data["terminal.integrated.defaultProfile.osx"] = "zsh"
-data["terminal.integrated.fontFamily"] = "0xProto Nerd Font Mono, 0xProtoNerdFontMono-Regular, Menlo, monospace"
+data["terminal.integrated.fontFamily"] = "Hack Nerd Font Mono, Menlo, monospace"
 data["terminal.integrated.fontSize"] = 13
-data["terminal.integrated.cursorStyle"] = "line"
+data["terminal.integrated.cursorStyle"] = "block"
 data["terminal.integrated.shellIntegration.enabled"] = True
-data["terminal.integrated.gpuAcceleration"] = "off"
+data["terminal.integrated.gpuAcceleration"] = "on"
 data["terminal.external.osxExec"] = "/Applications/iTerm.app"
 
 path.write_text(json.dumps(data, indent=2) + "\n")

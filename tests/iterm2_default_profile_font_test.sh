@@ -29,7 +29,7 @@ if default_profile is None:
     print("Default iTerm profile was not found in New Bookmarks.")
     raise SystemExit(1)
 
-expected_font = "0xProtoNerdFontMono-Regular 15"
+expected_font = "HackNFM-Regular 14"
 errors = []
 
 if default_profile.get("Normal Font") != expected_font:
@@ -51,5 +51,5 @@ if errors:
     print("\n".join(errors))
     raise SystemExit(1)
 
-print("PASS: iTerm default profile uses 0xProto Nerd Font Mono for all glyphs.")
+print("PASS: iTerm default profile uses Hack Nerd Font for all glyphs.")
 PY

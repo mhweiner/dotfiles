@@ -61,8 +61,8 @@ if [[ ! -f "${FAKE_LOG}" ]]; then
   exit 1
 fi
 
-if ! grep -q -- '--cask font-0xproto-nerd-font' "${FAKE_LOG}"; then
-  echo "Expected install.sh to install font-0xproto-nerd-font."
+if ! grep -q -- '--cask font-hack-nerd-font' "${FAKE_LOG}"; then
+  echo "Expected install.sh to install font-hack-nerd-font."
   exit 1
 fi
 
