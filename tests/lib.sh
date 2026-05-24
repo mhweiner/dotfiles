@@ -220,6 +220,29 @@ assert default_profile.get("Use Non-ASCII Font") is True
 PY
 }
 
+assert_iterm2_template_sanitized() {
+  local plist_path="${DOTFILES_DIR}/iterm2/com.googlecode.iterm2.plist"
+  python3 - <<'PY' "${plist_path}"
+import plistlib
+import sys
+from pathlib import Path
+
+plist_path = Path(sys.argv[1])
+with plist_path.open("rb") as f:
+    data = plistlib.load(f)
+
+for key in data:
+    assert not key.startswith("NSWindow Frame"), f"machine-specific key in template: {key!r}"
+    assert not key.startswith("NoSync"), f"machine-specific key in template: {key!r}"
+assert "Window Arrangements" not in data, "template must not ship saved window arrangements"
+
+for bookmark in data.get("New Bookmarks", []):
+    wd = bookmark.get("Working Directory")
+    assert not wd, f"profile {bookmark.get('Name')!r} has Working Directory={wd!r}"
+    assert bookmark.get("Custom Directory") == "No"
+PY
+}
+
 assert_iterm2_template_no_deprecated_key_mappings() {
   local plist_path="${DOTFILES_DIR}/iterm2/com.googlecode.iterm2.plist"
   python3 - <<'PY' "${plist_path}"
@@ -240,11 +263,60 @@ plist_path = Path(sys.argv[1])
 with plist_path.open("rb") as f:
     data = plistlib.load(f)
 
-for bookmark in data.get("New Bookmarks", []):
-    km = bookmark.get("Keyboard Map", {})
-    found = deprecated_keys.intersection(km)
-    assert not found, (
-        f"profile {bookmark.get('Name')!r} still has deprecated key mappings: {sorted(found)}"
-    )
+def find_deprecated(obj, path=""):
+    found = []
+    if isinstance(obj, dict):
+        km = obj.get("Keyboard Map")
+        if isinstance(km, dict):
+            hits = deprecated_keys.intersection(km)
+            if hits:
+                found.append((path or "root", sorted(hits)))
+        for key, value in obj.items():
+            found.extend(find_deprecated(value, f"{path}.{key}" if path else key))
+    elif isinstance(obj, list):
+        for index, item in enumerate(obj):
+            found.extend(find_deprecated(item, f"{path}[{index}]"))
+    return found
+
+bad = find_deprecated(data)
+assert not bad, f"deprecated key mappings remain: {bad}"
+PY
+}
+
+assert_iterm2_plist_no_deprecated_key_mappings() {
+  local plist_path="$1"
+  ITERM2_PLIST_PATH="${plist_path}" python3 - <<'PY'
+import os
+import plistlib
+from pathlib import Path
+
+deprecated_keys = {
+    "0xf700-0x240000",
+    "0xf701-0x240000",
+    "0xf702-0x240000",
+    "0xf703-0x240000",
+}
+
+plist_path = Path(os.environ["ITERM2_PLIST_PATH"])
+with plist_path.open("rb") as f:
+    data = plistlib.load(f)
+
+def find_deprecated(obj, path=""):
+    found = []
+    if isinstance(obj, dict):
+        km = obj.get("Keyboard Map")
+        if isinstance(km, dict):
+            hits = deprecated_keys.intersection(km)
+            if hits:
+                found.append((path or "root", sorted(hits)))
+        for key, value in obj.items():
+            found.extend(find_deprecated(value, f"{path}.{key}" if path else key))
+    elif isinstance(obj, list):
+        for index, item in enumerate(obj):
+            found.extend(find_deprecated(item, f"{path}[{index}]"))
+    return found
+
+bad = find_deprecated(data)
+assert not bad, f"deprecated key mappings remain in {plist_path}: {bad}"
 PY
 }
