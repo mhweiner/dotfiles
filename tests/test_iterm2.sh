@@ -12,6 +12,9 @@ test_pass "iTerm2 template default profile uses Hack Nerd Font"
 assert_iterm2_template_no_deprecated_key_mappings
 test_pass "iTerm2 template has no deprecated Sequoia-conflicting key mappings"
 
+assert_iterm2_template_sanitized
+test_pass "iTerm2 template has no machine-specific window or path state"
+
 setup_fake_home
 install_logging_defaults
 LIVE_PLIST="${FAKE_HOME}/Library/Preferences/com.googlecode.iterm2.plist"
@@ -32,6 +35,59 @@ printf '%s\n' 'custom iterm prefs' >"${LIVE_PLIST}"
 
 printf 'n\n' | DOTFILES_ALLOW_STDIN_PROMPTS=1 run_install_config >/dev/null 2>&1
 grep -q 'custom iterm prefs' "${LIVE_PLIST}" || test_fail "expected existing iTerm2 prefs to be kept when user declines"
+
+setup_fake_home
+install_fake_defaults
+LIVE_PLIST="${FAKE_HOME}/Library/Preferences/com.googlecode.iterm2.plist"
+mkdir -p "${FAKE_HOME}/Library/Preferences"
+cp "${REPO_PLIST}" "${LIVE_PLIST}"
+python3 - <<'PY' "${LIVE_PLIST}"
+import plistlib
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = plistlib.load(path.open("rb"))
+data["Default Arrangement Name"] = "test"
+data["Window Arrangements"] = {
+    "test": [
+        {
+            "Tabs": [
+                {
+                    "Root": {
+                        "Subviews": [
+                            {
+                                "Session": {
+                                    "Bookmark": {
+                                        "Keyboard Map": {
+                                            "0xf700-0x240000": {"Text": "[1;5A", "Action": 10},
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}
+with path.open("wb") as f:
+    plistlib.dump(data, f, sort_keys=False)
+PY
+
+DOTFILES_NO_PROMPTS=1 run_install_config >/dev/null 2>&1
+assert_iterm2_plist_no_deprecated_key_mappings "${LIVE_PLIST}"
+python3 - <<'PY' "${LIVE_PLIST}"
+import plistlib
+import sys
+from pathlib import Path
+
+data = plistlib.load(Path(sys.argv[1]).open("rb"))
+assert "Window Arrangements" not in data
+assert "Default Arrangement Name" not in data
+PY
+test_pass "install sanitizes live iTerm2 prefs (no saved window arrangements or deprecated keys)"
 
 setup_fake_home
 install_fake_defaults

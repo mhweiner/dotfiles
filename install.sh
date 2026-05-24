@@ -218,6 +218,12 @@ iterm2_disable_custom_folder() {
   defaults delete com.googlecode.iterm2 PrefsCustomFolder 2>/dev/null || true
 }
 
+iterm2_sanitize_live_prefs() {
+  local plist_path="$1"
+  [[ -f "${plist_path}" ]] || return 0
+  python3 "${DOTFILES}/iterm2/sanitize_plist.py" "${plist_path}" >/dev/null
+}
+
 configure_iterm2_prefs() {
   local repo_plist="${DOTFILES}/iterm2/com.googlecode.iterm2.plist"
   local live_plist="${HOME}/Library/Preferences/com.googlecode.iterm2.plist"
@@ -253,11 +259,12 @@ configure_iterm2_prefs() {
       cp "${repo_plist}" "${live_plist}"
     else
       echo "  Keeping existing iTerm2 preferences"
-      return 0
     fi
   else
     cp "${repo_plist}" "${live_plist}"
   fi
+
+  iterm2_sanitize_live_prefs "${live_plist}"
 }
 
 cursor_settings_overwrite_prompt_needed() {
