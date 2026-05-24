@@ -4,3 +4,7 @@
 # Editor cruft
 *.swp
 .*.swp
+
+# Accidental npm artifacts (dotfiles has no package.json)
+node_modules/
+package-lock.json

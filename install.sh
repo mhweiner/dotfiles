@@ -201,20 +201,62 @@ link_vimrc() {
   fi
 }
 
+iterm2_loads_custom_folder() {
+  local load_custom
+  load_custom="$(defaults read com.googlecode.iterm2 LoadPrefsFromCustomFolder 2>/dev/null || echo "0")"
+  [[ "${load_custom}" == "1" || "${load_custom}" == "true" || "${load_custom}" == "yes" ]]
+}
+
+iterm2_legacy_custom_folder() {
+  local folder="$1"
+  [[ "${folder}" == "${DOTFILES}/iterm2" || "${folder}" == "${HOME}/.config/iterm2" ]]
+}
+
+iterm2_disable_custom_folder() {
+  defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool false
+  defaults delete com.googlecode.iterm2 PrefsCustomFolder 2>/dev/null || true
+}
+
 configure_iterm2_prefs() {
-  local desired_folder="${DOTFILES}/iterm2"
-  local current_folder
+  local repo_plist="${DOTFILES}/iterm2/com.googlecode.iterm2.plist"
+  local live_plist="${HOME}/Library/Preferences/com.googlecode.iterm2.plist"
+  local current_folder=""
   current_folder="$(defaults read com.googlecode.iterm2 PrefsCustomFolder 2>/dev/null || true)"
 
-  if [[ -n "${current_folder}" ]] && [[ "${current_folder}" != "${desired_folder}" ]]; then
-    if ! prompt_yes_no "  iTerm2 prefs folder is '${current_folder}'. Overwrite with '${desired_folder}'?"; then
+  if iterm2_loads_custom_folder && [[ -n "${current_folder}" ]]; then
+    if iterm2_legacy_custom_folder "${current_folder}"; then
+      if [[ -f "${current_folder}/com.googlecode.iterm2.plist" ]]; then
+        mkdir -p "${HOME}/Library/Preferences"
+        cp "${current_folder}/com.googlecode.iterm2.plist" "${live_plist}"
+      fi
+      if [[ "${current_folder}" == "${DOTFILES}/iterm2" ]] && command -v git &>/dev/null && git -C "${DOTFILES}" rev-parse --is-inside-work-tree &>/dev/null; then
+        git -C "${DOTFILES}" checkout -- "iterm2/com.googlecode.iterm2.plist" 2>/dev/null || true
+      fi
+      iterm2_disable_custom_folder
+    elif ! prompt_yes_no "  iTerm2 prefs folder is '${current_folder}'. Switch to the default location and apply dotfiles template?"; then
       echo "  Keeping existing iTerm2 prefs folder"
       return 0
+    else
+      if [[ -f "${current_folder}/com.googlecode.iterm2.plist" ]]; then
+        mkdir -p "${HOME}/Library/Preferences"
+        cp "${current_folder}/com.googlecode.iterm2.plist" "${live_plist}"
+      fi
+      iterm2_disable_custom_folder
     fi
   fi
 
-  defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
-  defaults write com.googlecode.iterm2 PrefsCustomFolder -string "${desired_folder}"
+  mkdir -p "${HOME}/Library/Preferences"
+
+  if [[ -f "${live_plist}" ]]; then
+    if prompt_yes_no "  iTerm2 preferences already exist. Overwrite with dotfiles template?"; then
+      cp "${repo_plist}" "${live_plist}"
+    else
+      echo "  Keeping existing iTerm2 preferences"
+      return 0
+    fi
+  else
+    cp "${repo_plist}" "${live_plist}"
+  fi
 }
 
 cursor_settings_overwrite_prompt_needed() {

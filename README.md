@@ -27,16 +27,16 @@ After install, quit and reopen **iTerm2** so it reloads preferences.
 
 ## What `install.sh` installs 🧰
 
-| Installed | What it is | Typical use |
-|-----------|----------------|-------------|
-| 🍺 [Homebrew](https://brew.sh/) | macOS package manager | Install and upgrade CLI tools and casks |
-| 🖥️ [iTerm2](https://iterm2.com/) | Terminal emulator | Tabs, splits, profiles |
-| 🚀 [Starship](https://starship.rs/) | Shell prompt | Fast, informative `zsh` prompt |
-| 🐙 [GitHub CLI](https://cli.github.com/) (`gh`) | GitHub from the terminal | PRs, issues, `gh auth login` |
-| ☁️ [AWS CLI](https://aws.amazon.com/cli/) (`aws`) | AWS from the terminal | SSO, profiles, resource commands |
-| 📦 [nvm](https://github.com/nvm-sh/nvm) + Node **LTS** | Node version manager | Per-project Node versions via `.nvmrc` |
-| 🔭 [open-prs](https://github.com/logfoxai/open-prs) ([tap](https://github.com/logfoxai/homebrew-tap)) | Org-wide PR dashboard | TUI or `--once` summary for a GitHub org |
-| 🔤 [Hack Nerd Font](https://www.nerdfonts.com/) | Monospace font with icons | Starship / terminal icons (`font-hack-nerd-font` cask) |
+| Installed | What it's for |
+|-----------|---------------|
+| 🍺 [Homebrew](https://brew.sh/) | Install and update CLI tools and Mac apps |
+| 🖥️ [iTerm2](https://iterm2.com/) | Terminal with tabs, splits, and profiles |
+| 🚀 [Starship](https://starship.rs/) | Shell prompt in your terminal |
+| 🐙 [GitHub CLI](https://cli.github.com/) (`gh`) | Work with GitHub from the terminal |
+| ☁️ [AWS CLI](https://aws.amazon.com/cli/) (`aws`) | Work with AWS from the terminal |
+| 📦 [nvm](https://github.com/nvm-sh/nvm) + Node **LTS** | Install and switch Node versions per project |
+| 🔭 [open-prs](https://github.com/logfoxai/open-prs) ([tap](https://github.com/logfoxai/homebrew-tap)) | See open PRs across a GitHub org |
+| 🔤 [Hack Nerd Font](https://www.nerdfonts.com/) | Monospace font with icons for the terminal |
 
 `install.sh` is safe to rerun. It skips already-installed packages and only installs Node LTS when `node` is missing.
 
@@ -48,7 +48,7 @@ It configures:
 1. Ensures **`~/.zshrc`** includes an idempotent block that `source`s `~/dotfiles/.zshrc`.
 2. If **`~/.vimrc`** already exists, prompts whether to overwrite it with a symlink to **`~/dotfiles/vimrc`**.
 3. Symlinks **`starship.toml`** into `~/.config/`.
-4. Points **iTerm2** at `~/dotfiles/iterm2` (prompts before replacing a different prefs folder).
+4. Copies the **iTerm2** template from `~/dotfiles/iterm2` into the normal `~/Library/Preferences` location (prompts before overwriting existing prefs; migrates away from legacy custom-folder setups).
 5. Symlinks **`bin/`** helpers into **`~/.local/bin`**.
 6. Sets Cursor user terminal settings in `~/Library/Application Support/Cursor/User/settings.json` (zsh login shell, iTerm external terminal, Nerd Font stack), and prompts before overwriting different existing terminal settings.
 
@@ -85,7 +85,7 @@ cd ~/dotfiles && git pull && DOTFILES_SKIP_PACKAGES=1 ./install.sh
 | `.zshrc` | Shared zsh configuration |
 | `vimrc` | Shared Vim configuration |
 | `starship.toml` | Starship prompt theme |
-| `iterm2/` | iTerm2 preferences (folder iTerm reads/writes) |
+| `iterm2/` | iTerm2 preferences template (copied into `~/Library/Preferences` on install) |
 | `bin/` | Scripts symlinked to `~/.local/bin` (see **Helpers**) |
 | `install.sh` | Installs packages, checks nvm/Node, wires `~/.zshrc`, optionally replaces `~/.vimrc`, configures iTerm/Cursor terminal settings, and links `bin/` helpers |
 
