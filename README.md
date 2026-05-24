@@ -41,7 +41,7 @@ After install, quit and reopen **iTerm2** so it reloads preferences.
 `install.sh` is safe to rerun. It prompts before installing Homebrew packages (say no to wire config only). Already-installed packages are skipped; Node LTS is installed only when `node` is missing.
 
 
-## What `install.sh` configures 🤫
+## What `install.sh` configures ⚙️
 
 The config phase always runs (even if you skip Homebrew packages). It wires repo files into the places macOS and your apps expect them. Existing files are left alone unless install prompts you first.
 
