@@ -15,7 +15,7 @@ setup_fake_home
 install_fake_defaults
 printf '%s\n' 'custom vim settings' >"${FAKE_HOME}/.vimrc"
 
-printf 'n\n' | DOTFILES_ALLOW_STDIN_PROMPTS=1 run_install_config >/dev/null 2>&1
+printf 'n\nn\n' | DOTFILES_ALLOW_STDIN_PROMPTS=1 run_install_config >/dev/null 2>&1
 [[ -f "${FAKE_HOME}/.vimrc" && ! -L "${FAKE_HOME}/.vimrc" ]] || test_fail "expected existing ~/.vimrc to be kept when user declines"
 grep -q 'custom vim settings' "${FAKE_HOME}/.vimrc" || test_fail "expected custom ~/.vimrc content to remain"
 
@@ -23,7 +23,7 @@ setup_fake_home
 install_fake_defaults
 printf '%s\n' 'custom vim settings' >"${FAKE_HOME}/.vimrc"
 
-printf 'y\n' | DOTFILES_ALLOW_STDIN_PROMPTS=1 run_install_config >/dev/null 2>&1
+printf 'n\ny\n' | DOTFILES_ALLOW_STDIN_PROMPTS=1 run_install_config >/dev/null 2>&1
 [[ -L "${FAKE_HOME}/.vimrc" ]] || test_fail "expected ~/.vimrc symlink when user confirms overwrite"
 [[ "$(readlink "${FAKE_HOME}/.vimrc")" == "${DOTFILES_DIR}/vimrc" ]] || test_fail "expected ~/.vimrc to point at dotfiles/vimrc after overwrite"
 

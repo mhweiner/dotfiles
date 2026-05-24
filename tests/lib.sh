@@ -155,11 +155,11 @@ run_install() {
     DOTFILES_NO_PROMPTS="${DOTFILES_NO_PROMPTS:-0}" \
     DOTFILES_ALLOW_STDIN_PROMPTS="${DOTFILES_ALLOW_STDIN_PROMPTS:-0}" \
     DOTFILES_ASSUME_YES="${DOTFILES_ASSUME_YES:-0}" \
-    bash "${INSTALL_SCRIPT}" "$@"
+    bash "${INSTALL_SCRIPT}"
 }
 
 run_install_config() {
-  run_install config
+  run_install
 }
 
 assert_zshrc_sources_dotfiles() {

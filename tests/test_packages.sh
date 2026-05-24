@@ -13,7 +13,7 @@ install_logging_brew ""
 FAKE_APPS="${TMP_DIR}/Applications"
 mkdir -p "${FAKE_APPS}"
 
-APPLICATIONS_DIR="${FAKE_APPS}" DOTFILES_NO_PROMPTS=1 run_install >/dev/null 2>&1
+APPLICATIONS_DIR="${FAKE_APPS}" DOTFILES_ASSUME_YES=1 run_install >/dev/null 2>&1
 
 for expected in \
   'install --cask iterm2' \
@@ -35,7 +35,7 @@ install_logging_brew $'      iterm2) exit 0 ;;\n      font-hack-nerd-font) exit 
 FAKE_APPS="${TMP_DIR}/Applications"
 mkdir -p "${FAKE_APPS}"
 
-APPLICATIONS_DIR="${FAKE_APPS}" DOTFILES_NO_PROMPTS=1 run_install >/dev/null 2>&1
+APPLICATIONS_DIR="${FAKE_APPS}" DOTFILES_ASSUME_YES=1 run_install >/dev/null 2>&1
 
 grep -qF -- 'reinstall --cask iterm2' "${BREW_LOG}" || test_fail "expected iterm2 cask reinstall when app bundle is missing"
 grep -qF -- 'reinstall --cask font-hack-nerd-font' "${BREW_LOG}" || test_fail "expected font cask reinstall when font files are missing"

@@ -38,7 +38,7 @@ After install, quit and reopen **iTerm2** so it reloads preferences.
 | 🔭 [open-prs](https://github.com/logfoxai/open-prs) ([tap](https://github.com/logfoxai/homebrew-tap)) | See open PRs across a GitHub org |
 | 🔤 [Hack Nerd Font](https://www.nerdfonts.com/) | Monospace font with icons for the terminal |
 
-`install.sh` is safe to rerun. It skips already-installed packages and only installs Node LTS when `node` is missing.
+`install.sh` is safe to rerun. It prompts before installing Homebrew packages (say no to wire config only). Already-installed packages are skipped; Node LTS is installed only when `node` is missing.
 
 
 ## What `install.sh` configures 🤫

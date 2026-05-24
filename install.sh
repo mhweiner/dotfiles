@@ -380,10 +380,12 @@ echo ""
 echo "  ✨ dotfiles setup"
 echo ""
 
-if [[ "${1:-}" == "config" ]]; then
+if prompt_yes_no "  Install Homebrew packages (iTerm2, fonts, CLI tools, nvm/Node)?"; then
+  install_packages
+  echo ""
   install_config
 else
-  install_packages
+  echo "  Skipping package bootstrap"
   echo ""
   install_config
 fi
