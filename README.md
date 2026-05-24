@@ -41,14 +41,28 @@ After install, quit and reopen **iTerm2** so it reloads preferences.
 Safe to rerun. You're prompted before installing packages. Skips what's already installed; Node LTS only if `node` is missing.
 
 
+## Helpers 🧪
+
+| Name | Where | What |
+|------|-------|------|
+| `listenport` | `bin/` | Port usage (`lsof`); **`-k <port>`** kills listeners. |
+| `ll` | `.zshrc` | Long listing (`ls -lah`): all entries, human sizes, dotfiles. |
+| `git-cleanup` | `.zshrc` | Checkout/pull, prune `: gone]` branches (default **`main`**). |
+| `whatismyip` | `.zshrc` | Print public and local IP. |
+| `npmgh` | `.zshrc` | **`npmgh install`**, **`npmgh ci`**, etc. — same as **`npm`** but sets **`GITHUB_TOKEN`** from **`gh auth token`** for **GitHub Packages** and ensures **`read:packages`** on **`gh`** when missing. Plain **`npm`** is not wrapped (so **`npm link`** never forces OAuth). |
+| `awssso` | `.zshrc` | **`aws sso login`**, then **`export AWS_PROFILE`**. |
+
+
 ## Configurations ⚙️
 
-- **Shell** — `~/dotfiles/.zshrc`: PATH, Starship, nvm, helpers
-- **Vim** — `~/dotfiles/vimrc`
-- **Starship** — `~/dotfiles/starship.toml`
-- **iTerm2** — Default profile prefs (Hack Nerd Font, `xterm-256color`)
-- **Cursor** — terminal settings only (zsh, iTerm, Nerd Font, shell integration)
-- **Bin scripts** — `~/dotfiles/bin/` → `~/.local/bin`
+| Item | What |
+|------|------|
+| **Shell** | `~/dotfiles/.zshrc` — PATH, Starship, nvm, helpers |
+| **Vim** | `~/dotfiles/vimrc` |
+| **Starship** | `~/dotfiles/starship.toml` |
+| **iTerm2** | Default profile prefs (Hack Nerd Font, `xterm-256color`) |
+| **Cursor** | Terminal settings only (zsh, iTerm, Nerd Font, shell integration) |
+| **Bin scripts** | `~/dotfiles/bin/` → `~/.local/bin` |
 
 You'll be prompted first if you want to install these.
 
@@ -76,15 +90,3 @@ Quit and reopen **iTerm2** (and Cursor if you changed terminal settings).
 ```bash
 cd ~/dotfiles && git pull && ./install.sh
 ```
-
-
-## Helpers 🧪
-
-| Name | Where | What |
-|------|-------|------|
-| `listenport` | `bin/` | Port usage (`lsof`); **`-k <port>`** kills listeners. |
-| `ll` | `.zshrc` | Long listing (`ls -lah`): all entries, human sizes, dotfiles. |
-| `git-cleanup` | `.zshrc` | Checkout/pull, prune `: gone]` branches (default **`main`**). |
-| `whatismyip` | `.zshrc` | Print public and local IP. |
-| `npmgh` | `.zshrc` | **`npmgh install`**, **`npmgh ci`**, etc. — same as **`npm`** but sets **`GITHUB_TOKEN`** from **`gh auth token`** for **GitHub Packages** and ensures **`read:packages`** on **`gh`** when missing. Plain **`npm`** is not wrapped (so **`npm link`** never forces OAuth). |
-| `awssso` | `.zshrc` | **`aws sso login`**, then **`export AWS_PROFILE`**. |
