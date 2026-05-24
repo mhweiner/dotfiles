@@ -50,7 +50,7 @@ Safe to rerun. You're prompted before installing packages. Skips what's already 
 - **Cursor** — terminal settings only (zsh, iTerm, Nerd Font, shell integration)
 - **Bin scripts** — `~/dotfiles/bin/` → `~/.local/bin`
 
-You're prompted before applying config (a summary is printed first). Creates missing files; asks before overwriting existing ones.
+You'll be prompted first if you want to install these.
 
 1. Adds an idempotent `source ~/dotfiles/.zshrc` block to `~/.zshrc`.
 2. Symlinks `~/.vimrc` → `~/dotfiles/vimrc` (prompts if you already have one).
