@@ -27,7 +27,11 @@ After install, quit and reopen **iTerm2** so it reloads preferences.
 
 ## What `install.sh` does 🧰
 
-Safe to rerun. Install asks twice — packages, then config — and shows a summary before config. Already-installed packages are skipped; Node LTS installs only when `node` is missing. Within config, missing files are created harmlessly; existing files prompt before overwrite.
+You can rerun `install.sh` after every `git pull`. Each run has two optional phases, each behind a prompt.
+
+First, **packages** — Homebrew installs iTerm, fonts, CLI tools, nvm, and Node. Skips anything already present; Node LTS only if `node` is missing.
+
+Second, **config** — install prints what it will wire up, then asks. On a fresh machine it just creates files. If something already exists (your `~/.vimrc`, iTerm prefs, Cursor terminal settings, etc.), it asks before overwriting.
 
 ### In order
 
