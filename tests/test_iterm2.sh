@@ -33,7 +33,7 @@ LIVE_PLIST="${FAKE_HOME}/Library/Preferences/com.googlecode.iterm2.plist"
 mkdir -p "${FAKE_HOME}/Library/Preferences"
 printf '%s\n' 'custom iterm prefs' >"${LIVE_PLIST}"
 
-printf 'n\nn\n' | DOTFILES_ALLOW_STDIN_PROMPTS=1 run_install_config >/dev/null 2>&1
+printf 'n\n' | DOTFILES_ALLOW_STDIN_PROMPTS=1 run_install_config >/dev/null 2>&1
 grep -q 'custom iterm prefs' "${LIVE_PLIST}" || test_fail "expected existing iTerm2 prefs to be kept when user declines"
 
 setup_fake_home
@@ -95,7 +95,7 @@ LIVE_PLIST="${FAKE_HOME}/Library/Preferences/com.googlecode.iterm2.plist"
 mkdir -p "${FAKE_HOME}/Library/Preferences"
 printf '%s\n' 'custom iterm prefs' >"${LIVE_PLIST}"
 
-printf 'n\ny\n' | DOTFILES_ALLOW_STDIN_PROMPTS=1 run_install_config >/dev/null 2>&1
+printf 'y\n' | DOTFILES_ALLOW_STDIN_PROMPTS=1 run_install_config >/dev/null 2>&1
 cmp -s "${REPO_PLIST}" "${LIVE_PLIST}" || test_fail "expected dotfiles iTerm2 template when user confirms overwrite"
 
 setup_fake_home

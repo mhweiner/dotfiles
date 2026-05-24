@@ -47,7 +47,7 @@ cat >"${SETTINGS_PATH}" <<'EOF'
 }
 EOF
 
-printf 'n\nn\n' | DOTFILES_ALLOW_STDIN_PROMPTS=1 run_install_config >/dev/null 2>&1
+printf 'n\n' | DOTFILES_ALLOW_STDIN_PROMPTS=1 run_install_config >/dev/null 2>&1
 
 python3 - <<'PY' "${SETTINGS_PATH}"
 import json

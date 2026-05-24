@@ -25,51 +25,34 @@ git clone https://github.com/mhweiner/dotfiles.git ~/dotfiles
 After install, quit and reopen **iTerm2** so it reloads preferences.
 
 
-## What `install.sh` installs 🧰
+## What `install.sh` does 🧰
 
-| Installed | What it's for |
-|-----------|---------------|
-| 🍺 [Homebrew](https://brew.sh/) | Install and update CLI tools and Mac apps |
-| 🖥️ [iTerm2](https://iterm2.com/) | Terminal with tabs, splits, and profiles |
-| 🚀 [Starship](https://starship.rs/) | Shell prompt in your terminal |
-| 🐙 [GitHub CLI](https://cli.github.com/) (`gh`) | Work with GitHub from the terminal |
-| ☁️ [AWS CLI](https://aws.amazon.com/cli/) (`aws`) | Work with AWS from the terminal |
-| 📦 [nvm](https://github.com/nvm-sh/nvm) + Node **LTS** | Install and switch Node versions per project |
-| 🔭 [open-prs](https://github.com/logfoxai/open-prs) ([tap](https://github.com/logfoxai/homebrew-tap)) | See open PRs across a GitHub org |
-| 🔤 [Hack Nerd Font](https://www.nerdfonts.com/) | Monospace font with icons for the terminal |
+Safe to rerun. Install asks twice — packages, then config — and shows a summary before config. Already-installed packages are skipped; Node LTS installs only when `node` is missing. Within config, missing files are created harmlessly; existing files prompt before overwrite.
 
-`install.sh` is safe to rerun. It prompts before installing Homebrew packages (say no to wire config only). Already-installed packages are skipped; Node LTS is installed only when `node` is missing.
+### In order
 
-
-## What `install.sh` configures ⚙️
-
-The config phase always runs (even if you skip Homebrew packages). It wires repo files into the places macOS and your apps expect them. Existing files are left alone unless install prompts you first.
-
-**Optional:** Homebrew apps and CLI tools (iTerm, Starship, `gh`, fonts, etc.) are a separate prompt — see [What `install.sh` installs](#what-installsh-installs-) above. Say no there to get only the config below.
-
-### What you get
-
-| Where it lands | From | What's in it |
-|----------------|------|--------------|
-| **`~/.zshrc`** (sources repo) | `~/dotfiles/.zshrc` | Shared shell: Homebrew/`~/.local/bin` on `PATH`, Starship prompt, nvm + auto-`.nvmrc`, helpers (`ll`, `git-cleanup`, `whatismyip`, `npmgh`, `awssso`). Your machine-only lines stay outside the `>>> dotfiles BEGIN` block. |
-| **`~/.config/starship.toml`** | `~/dotfiles/starship.toml` | Starship theme (default layout; customize in the repo file). |
-| **`~/.vimrc`** | `~/dotfiles/vimrc` | Shared Vim defaults: syntax/filetypes, line numbers, search, tabs, undo, system clipboard. Symlinked when missing; prompts if you already have a `~/.vimrc`. |
-| **`~/Library/Preferences/com.googlecode.iterm2.plist`** | `~/dotfiles/iterm2/` template | iTerm2 **Default** profile: Hack Nerd Font Mono 14, `xterm-256color`, light/dark colors. Copied to the normal prefs location (not a symlink). Prompts before overwrite; sanitizes live prefs to drop saved window layouts and machine junk. |
-| **Cursor `settings.json`** | dotfiles terminal defaults | **Terminal-only** keys merged into `~/Library/Application Support/Cursor/User/settings.json`: zsh login shell, iTerm as external terminal, Hack Nerd Font stack, block cursor, shell integration, GPU acceleration. Prompts if you already have different terminal settings. |
-| **`~/.local/bin/`** | `~/dotfiles/bin/` | `listenport` (and removes legacy helper symlinks that moved into `.zshrc`). |
-
-See **Helpers** below for what the shell functions and scripts do day to day.
-
-### How install applies it
-
-1. **Shell** — Adds an idempotent `source ~/dotfiles/.zshrc` block to `~/.zshrc` (won't duplicate on rerun).
-2. **Vim** — Symlinks `~/.vimrc` → `~/dotfiles/vimrc` when absent, or asks before replacing an existing file.
-3. **Starship** — Symlinks `~/.config/starship.toml` → `~/dotfiles/starship.toml`.
-4. **iTerm2** — Copies the repo template into `~/Library/Preferences/`, migrates off legacy "custom prefs folder" setups, and sanitizes deprecated keys / saved arrangements on your live prefs.
-5. **Bin helpers** — Symlinks `listenport` into `~/.local/bin` and removes obsolete symlinks from older dotfiles layouts.
-6. **Cursor** — Merges terminal settings into your existing `settings.json` when needed (prompts before overwriting).
+1. **Packages (optional)** — Homebrew bootstrap: iTerm2, Hack Nerd Font, Starship, `gh`, AWS CLI, open-prs, nvm, Node LTS.
+2. **Config (optional)** — prints what will be wired (see below), then asks whether to apply.
+3. **Shell** — idempotent `source ~/dotfiles/.zshrc` block in `~/.zshrc`.
+4. **Vim** — symlink `~/.vimrc` → `~/dotfiles/vimrc` when absent; prompts if you already have one.
+5. **Starship** — symlink `~/.config/starship.toml` → `~/dotfiles/starship.toml`.
+6. **iTerm2** — copy template to `~/Library/Preferences/`, migrate off legacy custom-folder prefs, sanitize live plist.
+7. **Bin** — symlink `listenport` into `~/.local/bin`; remove obsolete helper symlinks from older layouts.
+8. **Cursor** — merge terminal-only keys into `settings.json`; prompts if yours differ.
 
 Quit and reopen **iTerm2** (and Cursor if you changed terminal settings) so apps pick up the new config.
+
+### Shell (`~/dotfiles/.zshrc`)
+
+PATH (Homebrew, `~/.local/bin`), Starship prompt, nvm + auto-`.nvmrc`, helpers: `ll`, `git-cleanup`, `whatismyip`, `npmgh`, `awssso`. Machine-only lines live outside the `>>> dotfiles BEGIN` block in `~/.zshrc`.
+
+### Vim, Starship, iTerm, Cursor, bin
+
+- **Vim** — syntax, line numbers, search, tabs, undo, system clipboard.
+- **Starship** — default theme in `starship.toml`.
+- **iTerm2** — Default profile: Hack Nerd Font Mono 14, `xterm-256color`, light/dark colors.
+- **Cursor** — zsh login shell, iTerm external terminal, Nerd Font stack, block cursor, shell integration, GPU acceleration (terminal keys only).
+- **`listenport`** — port usage / kill listeners (`bin/`). See **Helpers** below.
 
 
 ## Where to edit things 📝
