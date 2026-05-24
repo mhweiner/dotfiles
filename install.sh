@@ -98,11 +98,6 @@ brew_install_cask() {
 }
 
 install_packages() {
-  if [[ "${DOTFILES_SKIP_PACKAGES:-0}" == "1" ]]; then
-    echo "  Skipping package bootstrap (DOTFILES_SKIP_PACKAGES=1)"
-    return 0
-  fi
-
   if ! command -v git &>/dev/null; then
     echo "  Git is not installed. Run: xcode-select --install"
     echo "  Then re-run this script."
@@ -385,9 +380,13 @@ echo ""
 echo "  ✨ dotfiles setup"
 echo ""
 
-install_packages
-echo ""
-install_config
+if [[ "${1:-}" == "config" ]]; then
+  install_config
+else
+  install_packages
+  echo ""
+  install_config
+fi
 
 echo ""
 echo "  Done. Quit and reopen iTerm2/Cursor to use your new setup."

@@ -65,16 +65,8 @@ It configures:
 
 ## Updating ⬆️
 
-**Everything** (recommended):
-
 ```bash
 cd ~/dotfiles && git pull && ./install.sh
-```
-
-**Config only** (skip Homebrew/nvm/Node):
-
-```bash
-cd ~/dotfiles && git pull && DOTFILES_SKIP_PACKAGES=1 ./install.sh
 ```
 
 
