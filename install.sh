@@ -376,16 +376,43 @@ install_config() {
   configure_cursor_terminal_settings
 }
 
+print_config_summary() {
+  echo "  Config will wire:"
+  echo "    • Shell     ~/.zshrc sources this repo — PATH, Starship, nvm, helpers"
+  echo "    • Vim       ~/.vimrc → dotfiles/vimrc (prompts if you already have one)"
+  echo "    • Starship  ~/.config/starship.toml"
+  echo "    • iTerm2    Default profile prefs (prompts before overwrite)"
+  echo "    • Cursor    terminal settings only (prompts before overwrite)"
+  echo "    • Bin       listenport in ~/.local/bin"
+  echo ""
+  echo "  New files are created as needed. Existing files prompt before overwrite."
+  echo ""
+}
+
 echo ""
 echo "  ✨ dotfiles setup"
 echo ""
 
-if [[ "${1:-}" == "config" ]]; then
+if [[ "${DOTFILES_SKIP_PACKAGE_PROMPT:-0}" != "1" ]]; then
+  if prompt_yes_no "  Install Homebrew packages (iTerm2, fonts, CLI tools, nvm/Node)?"; then
+    install_packages
+  else
+    echo "  Skipping package bootstrap"
+  fi
+elif [[ "${DOTFILES_INSTALL_PACKAGES:-0}" == "1" ]]; then
+  install_packages
+fi
+
+echo ""
+
+print_config_summary
+
+if [[ "${DOTFILES_SKIP_CONFIG_PROMPT:-0}" == "1" ]]; then
+  install_config
+elif prompt_yes_no "  Apply dotfiles config (items above)?"; then
   install_config
 else
-  install_packages
-  echo ""
-  install_config
+  echo "  Skipping config"
 fi
 
 echo ""

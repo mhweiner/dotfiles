@@ -25,7 +25,7 @@ git clone https://github.com/mhweiner/dotfiles.git ~/dotfiles
 After install, quit and reopen **iTerm2** so it reloads preferences.
 
 
-## What `install.sh` installs 🧰
+## Packages 🧰
 
 | Installed | What it's for |
 |-----------|---------------|
@@ -38,20 +38,42 @@ After install, quit and reopen **iTerm2** so it reloads preferences.
 | 🔭 [open-prs](https://github.com/logfoxai/open-prs) ([tap](https://github.com/logfoxai/homebrew-tap)) | See open PRs across a GitHub org |
 | 🔤 [Hack Nerd Font](https://www.nerdfonts.com/) | Monospace font with icons for the terminal |
 
-`install.sh` is safe to rerun. It skips already-installed packages and only installs Node LTS when `node` is missing.
+Safe to rerun. You're prompted before installing packages. Skips what's already installed; Node LTS only if `node` is missing.
 
 
-## What `install.sh` configures 🤫
+## Helpers 🧪
 
-It configures:
+| Name | Where | What |
+|------|-------|------|
+| `listenport` | `bin/` | Port usage (`lsof`); **`-k <port>`** kills listeners. |
+| `ll` | `.zshrc` | Long listing (`ls -lah`): all entries, human sizes, dotfiles. |
+| `git-cleanup` | `.zshrc` | Checkout/pull, prune `: gone]` branches (default **`main`**). |
+| `whatismyip` | `.zshrc` | Print public and local IP. |
+| `npmgh` | `.zshrc` | **`npmgh install`**, **`npmgh ci`**, etc. — same as **`npm`** but sets **`GITHUB_TOKEN`** from **`gh auth token`** for **GitHub Packages** and ensures **`read:packages`** on **`gh`** when missing. Plain **`npm`** is not wrapped (so **`npm link`** never forces OAuth). |
+| `awssso` | `.zshrc` | **`aws sso login`**, then **`export AWS_PROFILE`**. |
 
-1. Ensures **`~/.zshrc`** includes an idempotent block that `source`s `~/dotfiles/.zshrc`.
-2. If **`~/.vimrc`** already exists, prompts whether to overwrite it with a symlink to **`~/dotfiles/vimrc`**.
-3. Symlinks **`starship.toml`** into `~/.config/`.
-4. Copies the **iTerm2** template from `~/dotfiles/iterm2` into the normal `~/Library/Preferences` location (prompts before overwriting existing prefs; migrates away from legacy custom-folder setups).
-5. Symlinks **`bin/`** helpers into **`~/.local/bin`**.
-6. Sets Cursor user terminal settings in `~/Library/Application Support/Cursor/User/settings.json` (zsh login shell, iTerm external terminal, Nerd Font stack), and prompts before overwriting different existing terminal settings.
 
+## Configurations ⚙️
+
+| Item | What |
+|------|------|
+| **Shell** | `~/dotfiles/.zshrc` — PATH, Starship, nvm, helpers |
+| **Vim** | `~/dotfiles/vimrc` |
+| **Starship** | `~/dotfiles/starship.toml` |
+| **iTerm2** | Default profile prefs (Hack Nerd Font, `xterm-256color`) |
+| **Cursor** | Terminal settings only (zsh, iTerm, Nerd Font, shell integration) |
+| **Bin scripts** | `~/dotfiles/bin/` → `~/.local/bin` |
+
+You'll be prompted first if you want to install these.
+
+1. Adds an idempotent `source ~/dotfiles/.zshrc` block to `~/.zshrc`.
+2. Symlinks `~/.vimrc` → `~/dotfiles/vimrc` (prompts if you already have one).
+3. Symlinks `~/.config/starship.toml` → `~/dotfiles/starship.toml`.
+4. Copies iTerm2 template to `~/Library/Preferences/`; migrates legacy custom-folder setups; sanitizes live prefs.
+5. Symlinks `bin/` scripts into `~/.local/bin`; removes obsolete helper symlinks.
+6. Merges Cursor terminal keys into `settings.json` (prompts if yours differ).
+
+Quit and reopen **iTerm2** (and Cursor if you changed terminal settings).
 
 ## Where to edit things 📝
 
@@ -68,27 +90,3 @@ It configures:
 ```bash
 cd ~/dotfiles && git pull && ./install.sh
 ```
-
-
-## Repository layout 📂
-
-| Path | Role |
-|------|------|
-| `.zshrc` | Shared zsh configuration |
-| `vimrc` | Shared Vim configuration |
-| `starship.toml` | Starship prompt theme |
-| `iterm2/` | iTerm2 preferences template (copied into `~/Library/Preferences` on install) |
-| `bin/` | Scripts symlinked to `~/.local/bin` (see **Helpers**) |
-| `install.sh` | Installs packages, checks nvm/Node, wires `~/.zshrc`, optionally replaces `~/.vimrc`, configures iTerm/Cursor terminal settings, and links `bin/` helpers |
-
-
-## Helpers 🧪
-
-| Name | Where | What |
-|------|-------|------|
-| `listenport` | `bin/` | Port usage (`lsof`); **`-k <port>`** kills listeners. |
-| `ll` | `.zshrc` | Long listing (`ls -lah`): all entries, human sizes, dotfiles. |
-| `git-cleanup` | `.zshrc` | Checkout/pull, prune `: gone]` branches (default **`main`**). |
-| `whatismyip` | `.zshrc` | Print public and local IP. |
-| `npmgh` | `.zshrc` | **`npmgh install`**, **`npmgh ci`**, etc. — same as **`npm`** but sets **`GITHUB_TOKEN`** from **`gh auth token`** for **GitHub Packages** and ensures **`read:packages`** on **`gh`** when missing. Plain **`npm`** is not wrapped (so **`npm link`** never forces OAuth). |
-| `awssso` | `.zshrc` | **`aws sso login`**, then **`export AWS_PROFILE`**. |
