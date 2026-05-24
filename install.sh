@@ -135,6 +135,7 @@ install_packages() {
     echo "  nvm already installed"
   fi
   export NVM_DIR="$HOME/.nvm"
+  # shellcheck source=/dev/null
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
   if ! command -v node &>/dev/null; then
     echo "  Installing Node (LTS)..."
@@ -363,8 +364,9 @@ install_config() {
   configure_iterm2_prefs
 
   mkdir -p ~/.local/bin
-  for f in listenport; do
-    [ -f "$DOTFILES/bin/$f" ] && ln -sf "$DOTFILES/bin/$f" ~/.local/bin/$f
+  local -a bin_helpers=(listenport)
+  for f in "${bin_helpers[@]}"; do
+    [ -f "$DOTFILES/bin/$f" ] && ln -sf "$DOTFILES/bin/$f" ~/.local/bin/"$f"
   done
   # Legacy symlinks (helpers removed or moved into dotfiles .zshrc)
   rm -f ~/.local/bin/killport ~/.local/bin/npm-gh ~/.local/bin/awssso ~/.local/bin/git-cleanup ~/.local/bin/whatismyip
