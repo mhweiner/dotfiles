@@ -29,7 +29,9 @@ if [ "$KILL" = 1 ]; then
     echo "No process listening on port $port" >&2
     exit 1
   fi
-  kill $pids
+  for pid in $pids; do
+    kill "$pid"
+  done
   exit 0
 fi
 
