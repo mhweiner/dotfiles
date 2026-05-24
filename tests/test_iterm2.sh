@@ -9,6 +9,9 @@ REPO_PLIST="${DOTFILES_DIR}/iterm2/com.googlecode.iterm2.plist"
 assert_iterm2_template_font
 test_pass "iTerm2 template default profile uses Hack Nerd Font"
 
+assert_iterm2_template_no_deprecated_key_mappings
+test_pass "iTerm2 template has no deprecated Sequoia-conflicting key mappings"
+
 setup_fake_home
 install_logging_defaults
 LIVE_PLIST="${FAKE_HOME}/Library/Preferences/com.googlecode.iterm2.plist"
@@ -47,8 +50,6 @@ ITERM2_LOAD_CUSTOM=1 ITERM2_CUSTOM_FOLDER="${DOTFILES_DIR}/iterm2" \
 
 [[ -f "${LIVE_PLIST}" ]] || test_fail "expected migrated iTerm2 prefs in ~/Library/Preferences"
 grep -q 'LoadPrefsFromCustomFolder -bool false' "${DEFAULTS_LOG}" || test_fail "expected legacy custom-folder setup to be disabled"
-if [[ -n "$(git -C "${DOTFILES_DIR}" status --porcelain iterm2/com.googlecode.iterm2.plist)" ]]; then
-  test_fail "expected legacy migration to leave tracked iTerm2 template unchanged in git"
-fi
+assert_git_no_unstaged_changes "iterm2/com.googlecode.iterm2.plist"
 
 test_pass "install manages iTerm2 prefs in the default location and migrates legacy setups"

@@ -17,6 +17,14 @@ test_pass() {
   echo "PASS: $*"
 }
 
+assert_git_no_unstaged_changes() {
+  local pathspec="$1"
+  if ! git -C "${DOTFILES_DIR}" diff --quiet -- "${pathspec}"; then
+    git -C "${DOTFILES_DIR}" diff -- "${pathspec}"
+    test_fail "expected no unstaged git changes under ${pathspec}"
+  fi
+}
+
 setup_fake_home() {
   TMP_DIR="$(mktemp -d)"
   export TMP_DIR
@@ -209,5 +217,34 @@ expected_font = "HackNFM-Regular 14"
 assert default_profile.get("Normal Font") == expected_font
 assert default_profile.get("Non Ascii Font") == expected_font
 assert default_profile.get("Use Non-ASCII Font") is True
+PY
+}
+
+assert_iterm2_template_no_deprecated_key_mappings() {
+  local plist_path="${DOTFILES_DIR}/iterm2/com.googlecode.iterm2.plist"
+  python3 - <<'PY' "${plist_path}"
+import plistlib
+import sys
+from pathlib import Path
+
+# iTerm2 3.5.6+ flags these ctrl+arrow mappings as deprecated on macOS Sequoia
+# because they conflict with window-tiling shortcuts.
+deprecated_keys = {
+    "0xf700-0x240000",
+    "0xf701-0x240000",
+    "0xf702-0x240000",
+    "0xf703-0x240000",
+}
+
+plist_path = Path(sys.argv[1])
+with plist_path.open("rb") as f:
+    data = plistlib.load(f)
+
+for bookmark in data.get("New Bookmarks", []):
+    km = bookmark.get("Keyboard Map", {})
+    found = deprecated_keys.intersection(km)
+    assert not found, (
+        f"profile {bookmark.get('Name')!r} still has deprecated key mappings: {sorted(found)}"
+    )
 PY
 }
