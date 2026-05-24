@@ -8,7 +8,8 @@ shell_files=(
   install.sh
   validate.sh
   bin/listenport
-  tests/*.sh
+  tests/lib.sh
+  tests/test_*.sh
 )
 
 echo "==> shellcheck"
@@ -19,7 +20,7 @@ fi
 shellcheck -x "${shell_files[@]}"
 
 echo "==> tests"
-for test_script in tests/*.sh; do
+for test_script in tests/test_*.sh; do
   echo "-- ${test_script}"
   bash "${test_script}"
 done
