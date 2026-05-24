@@ -152,15 +152,14 @@ EOF
 
 run_install() {
   HOME="${FAKE_HOME}" PATH="${FAKE_BIN}:${PATH}" \
-    DOTFILES_SKIP_PACKAGES="${DOTFILES_SKIP_PACKAGES:-0}" \
     DOTFILES_NO_PROMPTS="${DOTFILES_NO_PROMPTS:-0}" \
     DOTFILES_ALLOW_STDIN_PROMPTS="${DOTFILES_ALLOW_STDIN_PROMPTS:-0}" \
     DOTFILES_ASSUME_YES="${DOTFILES_ASSUME_YES:-0}" \
-    bash "${INSTALL_SCRIPT}"
+    bash "${INSTALL_SCRIPT}" "$@"
 }
 
 run_install_config() {
-  DOTFILES_SKIP_PACKAGES=1 run_install
+  run_install config
 }
 
 assert_zshrc_sources_dotfiles() {
