@@ -48,7 +48,7 @@ Safe to rerun. You're prompted before installing packages. Skips what's already 
 - **Starship** — `~/dotfiles/starship.toml`
 - **iTerm2** — Default profile prefs (Hack Nerd Font, `xterm-256color`)
 - **Cursor** — terminal settings only (zsh, iTerm, Nerd Font, shell integration)
-- **`listenport`** — `~/dotfiles/bin/listenport` → `~/.local/bin`
+- **Bin scripts** — `~/dotfiles/bin/` → `~/.local/bin`
 
 You're prompted before applying config (install prints a summary first). Creates missing files; asks before overwriting existing ones.
 
@@ -59,7 +59,7 @@ You're prompted before applying config (install prints a summary first). Creates
 2. Symlinks `~/.vimrc` → `~/dotfiles/vimrc` (prompts if you already have one).
 3. Symlinks `~/.config/starship.toml` → `~/dotfiles/starship.toml`.
 4. Copies iTerm2 template to `~/Library/Preferences/`; migrates legacy custom-folder setups; sanitizes live prefs.
-5. Symlinks `listenport` into `~/.local/bin`; removes obsolete helper symlinks.
+5. Symlinks `bin/` scripts into `~/.local/bin`; removes obsolete helper symlinks.
 6. Merges Cursor terminal keys into `settings.json` (prompts if yours differ).
 
 Quit and reopen **iTerm2** (and Cursor if you changed terminal settings).
