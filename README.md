@@ -25,7 +25,7 @@ git clone https://github.com/mhweiner/dotfiles.git ~/dotfiles
 After install, quit and reopen **iTerm2** so it reloads preferences.
 
 
-## What `install.sh` installs 🧰
+## Packages 🧰
 
 | Installed | What it's for |
 |-----------|---------------|
@@ -41,7 +41,7 @@ After install, quit and reopen **iTerm2** so it reloads preferences.
 Safe to rerun. You're prompted before installing packages. Skips what's already installed; Node LTS only if `node` is missing.
 
 
-## What `install.sh` configures ⚙️
+## Configurations ⚙️
 
 - **Shell** — `~/dotfiles/.zshrc`: PATH, Starship, nvm, helpers
 - **Vim** — `~/dotfiles/vimrc`
@@ -50,10 +50,7 @@ Safe to rerun. You're prompted before installing packages. Skips what's already 
 - **Cursor** — terminal settings only (zsh, iTerm, Nerd Font, shell integration)
 - **Bin scripts** — `~/dotfiles/bin/` → `~/.local/bin`
 
-You're prompted before applying config (install prints a summary first). Creates missing files; asks before overwriting existing ones.
-
-
-## How install configures it
+You're prompted before applying config (a summary is printed first). Creates missing files; asks before overwriting existing ones.
 
 1. Adds an idempotent `source ~/dotfiles/.zshrc` block to `~/.zshrc`.
 2. Symlinks `~/.vimrc` → `~/dotfiles/vimrc` (prompts if you already have one).
