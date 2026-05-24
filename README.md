@@ -27,16 +27,16 @@ After install, quit and reopen **iTerm2** so it reloads preferences.
 
 ## What `install.sh` does 🧰
 
-You can rerun `install.sh` after every `git pull`. Each run has two optional phases, each behind a prompt.
+`install.sh` is safe to rerun. You're prompted for packages, then config — it prints what config will do before that second prompt.
 
-First, **packages** — Homebrew installs iTerm, fonts, CLI tools, nvm, and Node. Skips anything already present; Node LTS only if `node` is missing.
+**Packages** — iTerm, fonts, CLI tools, nvm, and Node via Homebrew. Skips what's already installed; Node LTS only if `node` is missing.
 
-Second, **config** — install prints what it will wire up, then asks. On a fresh machine it just creates files. If something already exists (your `~/.vimrc`, iTerm prefs, Cursor terminal settings, etc.), it asks before overwriting.
+**Config** — creates missing files. Asks before overwriting anything you already have.
 
 ### In order
 
-1. **Packages (optional)** — Homebrew bootstrap: iTerm2, Hack Nerd Font, Starship, `gh`, AWS CLI, open-prs, nvm, Node LTS.
-2. **Config (optional)** — prints what will be wired (see below), then asks whether to apply.
+1. **Packages** — Homebrew bootstrap: iTerm2, Hack Nerd Font, Starship, `gh`, AWS CLI, open-prs, nvm, Node LTS.
+2. **Config** — prints what will be wired (see below), then asks whether to apply.
 3. **Shell** — idempotent `source ~/dotfiles/.zshrc` block in `~/.zshrc`.
 4. **Vim** — symlink `~/.vimrc` → `~/dotfiles/vimrc` when absent; prompts if you already have one.
 5. **Starship** — symlink `~/.config/starship.toml` → `~/dotfiles/starship.toml`.
