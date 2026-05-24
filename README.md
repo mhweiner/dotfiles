@@ -25,39 +25,44 @@ git clone https://github.com/mhweiner/dotfiles.git ~/dotfiles
 After install, quit and reopen **iTerm2** so it reloads preferences.
 
 
-## What `install.sh` does 🧰
+## What `install.sh` installs 🧰
 
-`install.sh` is safe to rerun. You're prompted for packages, then config — it prints what config will do before that second prompt.
+| Installed | What it's for |
+|-----------|---------------|
+| 🍺 [Homebrew](https://brew.sh/) | Install and update CLI tools and Mac apps |
+| 🖥️ [iTerm2](https://iterm2.com/) | Terminal with tabs, splits, and profiles |
+| 🚀 [Starship](https://starship.rs/) | Shell prompt in your terminal |
+| 🐙 [GitHub CLI](https://cli.github.com/) (`gh`) | Work with GitHub from the terminal |
+| ☁️ [AWS CLI](https://aws.amazon.com/cli/) (`aws`) | Work with AWS from the terminal |
+| 📦 [nvm](https://github.com/nvm-sh/nvm) + Node **LTS** | Install and switch Node versions per project |
+| 🔭 [open-prs](https://github.com/logfoxai/open-prs) ([tap](https://github.com/logfoxai/homebrew-tap)) | See open PRs across a GitHub org |
+| 🔤 [Hack Nerd Font](https://www.nerdfonts.com/) | Monospace font with icons for the terminal |
 
-**Packages** — iTerm, fonts, CLI tools, nvm, and Node via Homebrew. Skips what's already installed; Node LTS only if `node` is missing.
+Safe to rerun. You're prompted before installing packages. Skips what's already installed; Node LTS only if `node` is missing.
 
-**Config** — creates missing files. Asks before overwriting anything you already have.
 
-### In order
+## What `install.sh` configures ⚙️
 
-1. **Packages** — Homebrew bootstrap: iTerm2, Hack Nerd Font, Starship, `gh`, AWS CLI, open-prs, nvm, Node LTS.
-2. **Config** — prints what will be wired (see below), then asks whether to apply.
-3. **Shell** — idempotent `source ~/dotfiles/.zshrc` block in `~/.zshrc`.
-4. **Vim** — symlink `~/.vimrc` → `~/dotfiles/vimrc` when absent; prompts if you already have one.
-5. **Starship** — symlink `~/.config/starship.toml` → `~/dotfiles/starship.toml`.
-6. **iTerm2** — copy template to `~/Library/Preferences/`, migrate off legacy custom-folder prefs, sanitize live plist.
-7. **Bin** — symlink `listenport` into `~/.local/bin`; remove obsolete helper symlinks from older layouts.
-8. **Cursor** — merge terminal-only keys into `settings.json`; prompts if yours differ.
+- **Shell** — `~/dotfiles/.zshrc`: PATH, Starship, nvm, helpers
+- **Vim** — `~/dotfiles/vimrc`
+- **Starship** — `~/dotfiles/starship.toml`
+- **iTerm2** — Default profile prefs (Hack Nerd Font, `xterm-256color`)
+- **Cursor** — terminal settings only (zsh, iTerm, Nerd Font, shell integration)
+- **`listenport`** — `~/dotfiles/bin/listenport` → `~/.local/bin`
 
-Quit and reopen **iTerm2** (and Cursor if you changed terminal settings) so apps pick up the new config.
+You're prompted before applying config (install prints a summary first). Creates missing files; asks before overwriting existing ones.
 
-### Shell (`~/dotfiles/.zshrc`)
 
-PATH (Homebrew, `~/.local/bin`), Starship prompt, nvm + auto-`.nvmrc`, helpers: `ll`, `git-cleanup`, `whatismyip`, `npmgh`, `awssso`. Machine-only lines live outside the `>>> dotfiles BEGIN` block in `~/.zshrc`.
+## How install configures it
 
-### Vim, Starship, iTerm, Cursor, bin
+1. Adds an idempotent `source ~/dotfiles/.zshrc` block to `~/.zshrc`.
+2. Symlinks `~/.vimrc` → `~/dotfiles/vimrc` (prompts if you already have one).
+3. Symlinks `~/.config/starship.toml` → `~/dotfiles/starship.toml`.
+4. Copies iTerm2 template to `~/Library/Preferences/`; migrates legacy custom-folder setups; sanitizes live prefs.
+5. Symlinks `listenport` into `~/.local/bin`; removes obsolete helper symlinks.
+6. Merges Cursor terminal keys into `settings.json` (prompts if yours differ).
 
-- **Vim** — syntax, line numbers, search, tabs, undo, system clipboard.
-- **Starship** — default theme in `starship.toml`.
-- **iTerm2** — Default profile: Hack Nerd Font Mono 14, `xterm-256color`, light/dark colors.
-- **Cursor** — zsh login shell, iTerm external terminal, Nerd Font stack, block cursor, shell integration, GPU acceleration (terminal keys only).
-- **`listenport`** — port usage / kill listeners (`bin/`). See **Helpers** below.
-
+Quit and reopen **iTerm2** (and Cursor if you changed terminal settings).
 
 ## Where to edit things 📝
 
