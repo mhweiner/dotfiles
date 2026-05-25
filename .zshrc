@@ -31,15 +31,42 @@ whatismyip() {
   echo ""
 }
 
-# === nvm ===
+# === nvm (lazy — loads on first use or cd into an .nvmrc dir) ===
 
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
-# Auto-use Node version from nearest .nvmrc (requires nvm to be loaded above)
+_load_nvm() {
+  [[ -n "${_NVM_LOADED:-}" ]] && return 0
+  [[ -s "$NVM_DIR/nvm.sh" ]] || return 1
+  unset -f nvm node npm npx _load_nvm
+  \. "$NVM_DIR/nvm.sh"
+  [[ -s "$NVM_DIR/bash_completion" ]] && \. "$NVM_DIR/bash_completion"
+  _NVM_LOADED=1
+}
+
+nvm() {
+  _load_nvm || return 127
+  nvm "$@"
+}
+
+node() {
+  _load_nvm || return 127
+  node "$@"
+}
+
+npm() {
+  _load_nvm || return 127
+  npm "$@"
+}
+
+npx() {
+  _load_nvm || return 127
+  npx "$@"
+}
+
 autoload -U add-zsh-hook
 load-nvmrc() {
+  _load_nvm || return 0
   local nvmrc_path wanted v_wanted v_current
   nvmrc_path="$(nvm_find_nvmrc)"
   if [ -n "$nvmrc_path" ]; then
@@ -56,7 +83,6 @@ load-nvmrc() {
   fi
 }
 add-zsh-hook chpwd load-nvmrc
-load-nvmrc
 
 # === npmgh (GitHub Packages via gh) ===
 # Use **`npmgh`** like **`npm`** when a project depends on **GitHub Packages** (e.g. first
@@ -88,6 +114,7 @@ _npmgh_ensure_gh_read_packages() {
 }
 
 npmgh() {
+  _load_nvm || return 127
   _npmgh_ensure_gh_read_packages
   GITHUB_TOKEN=$(gh auth token 2>/dev/null) command npm "$@"
 }
