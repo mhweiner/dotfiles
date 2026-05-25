@@ -235,7 +235,9 @@ with plist_path.open("rb") as f:
 
 for key in data:
     assert not key.startswith("NSWindow Frame"), f"machine-specific key in template: {key!r}"
-    assert not key.startswith("NoSync"), f"machine-specific key in template: {key!r}"
+    if key.startswith("NoSync") and key != "NoSyncRemoveDeprecatedKeyMappings":
+        raise AssertionError(f"machine-specific key in template: {key!r}")
+assert data.get("NoSyncRemoveDeprecatedKeyMappings") == 1
 assert "Window Arrangements" not in data, "template must not ship saved window arrangements"
 
 for bookmark in data.get("New Bookmarks", []):
@@ -247,21 +249,14 @@ PY
 
 assert_iterm2_template_no_deprecated_key_mappings() {
   local plist_path="${DOTFILES_DIR}/iterm2/com.googlecode.iterm2.plist"
-  python3 - <<'PY' "${plist_path}"
+  ITERM2_PLIST_PATH="${plist_path}" python3 - <<'PY'
+import os
 import plistlib
-import sys
 from pathlib import Path
 
-# iTerm2 3.5.6+ flags these ctrl+arrow mappings as deprecated on macOS Sequoia
-# because they conflict with window-tiling shortcuts.
-deprecated_keys = {
-    "0xf700-0x240000",
-    "0xf701-0x240000",
-    "0xf702-0x240000",
-    "0xf703-0x240000",
-}
-
-plist_path = Path(sys.argv[1])
+dotfiles = Path(os.environ["ITERM2_PLIST_PATH"]).resolve().parent
+deprecations = plistlib.load((dotfiles / "DeprecatedProfileKeyMappings.plist").open("rb"))
+plist_path = Path(os.environ["ITERM2_PLIST_PATH"])
 with plist_path.open("rb") as f:
     data = plistlib.load(f)
 
@@ -270,9 +265,9 @@ def find_deprecated(obj, path=""):
     if isinstance(obj, dict):
         km = obj.get("Keyboard Map")
         if isinstance(km, dict):
-            hits = deprecated_keys.intersection(km)
-            if hits:
-                found.append((path or "root", sorted(hits)))
+            for key, deprecated_value in deprecations.items():
+                if key in km and km[key] == deprecated_value:
+                    found.append((path or "root", key))
         for key, value in obj.items():
             found.extend(find_deprecated(value, f"{path}.{key}" if path else key))
     elif isinstance(obj, list):
@@ -287,18 +282,13 @@ PY
 
 assert_iterm2_plist_no_deprecated_key_mappings() {
   local plist_path="$1"
-  ITERM2_PLIST_PATH="${plist_path}" python3 - <<'PY'
+  DOTFILES_DIR="${DOTFILES_DIR}" ITERM2_PLIST_PATH="${plist_path}" python3 - <<'PY'
 import os
 import plistlib
 from pathlib import Path
 
-deprecated_keys = {
-    "0xf700-0x240000",
-    "0xf701-0x240000",
-    "0xf702-0x240000",
-    "0xf703-0x240000",
-}
-
+dotfiles = Path(os.environ["DOTFILES_DIR"])
+deprecations = plistlib.load((dotfiles / "iterm2/DeprecatedProfileKeyMappings.plist").open("rb"))
 plist_path = Path(os.environ["ITERM2_PLIST_PATH"])
 with plist_path.open("rb") as f:
     data = plistlib.load(f)
@@ -308,9 +298,9 @@ def find_deprecated(obj, path=""):
     if isinstance(obj, dict):
         km = obj.get("Keyboard Map")
         if isinstance(km, dict):
-            hits = deprecated_keys.intersection(km)
-            if hits:
-                found.append((path or "root", sorted(hits)))
+            for key, deprecated_value in deprecations.items():
+                if key in km and km[key] == deprecated_value:
+                    found.append((path or "root", key))
         for key, value in obj.items():
             found.extend(find_deprecated(value, f"{path}.{key}" if path else key))
     elif isinstance(obj, list):

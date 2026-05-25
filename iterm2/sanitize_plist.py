@@ -2,7 +2,8 @@
 """Reduce an iTerm2 plist to portable dotfiles template shape.
 
 Saved window arrangements, window positions, and other machine-local state do
-not belong in ~/dotfiles. Run after re-exporting prefs from iTerm2:
+not belong in ~/dotfiles. Strips key mappings iTerm2 flags as deprecated on
+macOS Sequoia (same list as iTerm's DeprecatedProfileKeyMappings.plist).
 
   python3 iterm2/sanitize_plist.py iterm2/com.googlecode.iterm2.plist
 """
@@ -13,14 +14,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
-DEPRECATED_KEYBOARD_KEYS = frozenset(
-    {
-        "0xf700-0x240000",
-        "0xf701-0x240000",
-        "0xf702-0x240000",
-        "0xf703-0x240000",
-    }
-)
+HERE = Path(__file__).resolve().parent
+DEPRECATIONS_PATH = HERE / "DeprecatedProfileKeyMappings.plist"
+
+# iTermMigrationHelperShouldRemoveDeprecatedKeyMappingsNoneFound
+ITERM_DEPRECATED_KEYS_NONE_FOUND = 1
 
 DROP_KEY_PREFIXES = (
     "NSWindow Frame",
@@ -47,27 +45,45 @@ DROP_KEYS = frozenset(
 )
 
 
+def load_deprecations() -> dict[str, Any]:
+    with DEPRECATIONS_PATH.open("rb") as f:
+        return plistlib.load(f)
+
+
 def should_drop_key(key: str) -> bool:
     if key in DROP_KEYS:
         return True
     return any(key.startswith(prefix) for prefix in DROP_KEY_PREFIXES)
 
 
-def strip_keyboard_maps(obj: Any) -> int:
+def strip_deprecated_keyboard_maps(obj: Any, deprecations: dict[str, Any]) -> int:
     removed = 0
     if isinstance(obj, dict):
         km = obj.get("Keyboard Map")
         if isinstance(km, dict):
-            for key in DEPRECATED_KEYBOARD_KEYS:
-                if key in km:
+            for key, deprecated_value in deprecations.items():
+                if key in km and km[key] == deprecated_value:
                     del km[key]
                     removed += 1
         for value in obj.values():
-            removed += strip_keyboard_maps(value)
+            removed += strip_deprecated_keyboard_maps(value, deprecations)
     elif isinstance(obj, list):
         for item in obj:
-            removed += strip_keyboard_maps(item)
+            removed += strip_deprecated_keyboard_maps(item, deprecations)
     return removed
+
+
+def has_deprecated_keyboard_maps(obj: Any, deprecations: dict[str, Any]) -> bool:
+    if isinstance(obj, dict):
+        km = obj.get("Keyboard Map")
+        if isinstance(km, dict):
+            for key, deprecated_value in deprecations.items():
+                if key in km and km[key] == deprecated_value:
+                    return True
+        return any(has_deprecated_keyboard_maps(value, deprecations) for value in obj.values())
+    if isinstance(obj, list):
+        return any(has_deprecated_keyboard_maps(item, deprecations) for item in obj)
+    return False
 
 
 def sanitize_profile(profile: dict) -> None:
@@ -76,13 +92,18 @@ def sanitize_profile(profile: dict) -> None:
 
 
 def sanitize(data: dict) -> tuple[dict, int]:
+    deprecations = load_deprecations()
     cleaned = {k: v for k, v in data.items() if not should_drop_key(k)}
 
     for bookmark in cleaned.get("New Bookmarks", []):
         if isinstance(bookmark, dict):
             sanitize_profile(bookmark)
 
-    removed_keys = strip_keyboard_maps(cleaned)
+    removed_keys = strip_deprecated_keyboard_maps(cleaned, deprecations)
+
+    if not has_deprecated_keyboard_maps(cleaned, deprecations):
+        cleaned["NoSyncRemoveDeprecatedKeyMappings"] = ITERM_DEPRECATED_KEYS_NONE_FOUND
+
     return cleaned, removed_keys
 
 
