@@ -9,7 +9,7 @@ install_fake_git
 install_fake_node
 install_fake_nvm
 install_fake_defaults
-install_logging_brew ""
+install_logging_brew
 FAKE_APPS="${TMP_DIR}/Applications"
 mkdir -p "${FAKE_APPS}"
 
@@ -32,7 +32,7 @@ install_fake_git
 install_fake_node
 install_fake_nvm
 install_fake_defaults
-install_logging_brew $'      iterm2) exit 0 ;;\n      cursor) exit 0 ;;\n      font-hack-nerd-font) exit 0 ;;\n'
+install_logging_brew iterm2 cursor font-hack-nerd-font
 FAKE_APPS="${TMP_DIR}/Applications"
 mkdir -p "${FAKE_APPS}"
 

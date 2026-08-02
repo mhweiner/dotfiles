@@ -115,8 +115,13 @@ install_fake_nvm() {
 }
 
 # Logs every brew invocation to BREW_LOG.
+# Optional args are cask names that should appear already installed via `brew list --cask`.
 install_logging_brew() {
-  local installed_casks="${1:-}"
+  local installed_casks=""
+  local cask
+  for cask in "$@"; do
+    installed_casks+="      ${cask}) exit 0 ;;"$'\n'
+  done
   BREW_LOG="${TMP_DIR}/brew.log"
   export BREW_LOG
   cat >"${FAKE_BIN}/brew" <<EOF
