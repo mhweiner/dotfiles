@@ -31,6 +31,7 @@ After install, quit and reopen **iTerm2** so it reloads preferences.
 |-----------|---------------|
 | 🍺 [Homebrew](https://brew.sh/) | Install and update CLI tools and Mac apps |
 | 🖥️ [iTerm2](https://iterm2.com/) | Terminal with tabs, splits, and profiles |
+| 🖱️ [Cursor](https://www.cursor.com/) | AI code editor |
 | 🚀 [Starship](https://starship.rs/) | Shell prompt in your terminal |
 | 🐙 [GitHub CLI](https://cli.github.com/) (`gh`) | Work with GitHub from the terminal |
 | ☁️ [AWS CLI](https://aws.amazon.com/cli/) (`aws`) | Work with AWS from the terminal |

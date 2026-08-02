@@ -53,6 +53,7 @@ known_cask_app_bundle_path() {
   local c="$1"
   case "$c" in
     iterm2) printf '%s/iTerm.app\n' "$APPLICATIONS_DIR" ;;
+    cursor) printf '%s/Cursor.app\n' "$APPLICATIONS_DIR" ;;
     *) return 1 ;;
   esac
 }
@@ -62,6 +63,9 @@ cask_artifacts_present() {
   case "$c" in
     iterm2)
       [ -d "${APPLICATIONS_DIR}/iTerm.app" ]
+      ;;
+    cursor)
+      [ -d "${APPLICATIONS_DIR}/Cursor.app" ]
       ;;
     font-hack-nerd-font)
       [ -f "${HOME}/Library/Fonts/HackNerdFontMono-Regular.ttf" ]
@@ -117,6 +121,7 @@ install_packages() {
 
   echo "  Homebrew packages (skipped if already present)..."
   brew_install_cask iterm2
+  brew_install_cask cursor
   brew_install_cask font-hack-nerd-font
   brew_install_formula starship
   brew_install_formula gh
@@ -394,7 +399,7 @@ echo "  ✨ dotfiles setup"
 echo ""
 
 if [[ "${DOTFILES_SKIP_PACKAGE_PROMPT:-0}" != "1" ]]; then
-  if prompt_yes_no "  Install Homebrew packages (iTerm2, fonts, CLI tools, nvm/Node)?"; then
+  if prompt_yes_no "  Install Homebrew packages (iTerm2, Cursor, fonts, CLI tools, nvm/Node)?"; then
     install_packages
   else
     echo "  Skipping package bootstrap"
