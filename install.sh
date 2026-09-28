@@ -371,12 +371,12 @@ install_config() {
   configure_iterm2_prefs
 
   mkdir -p ~/.local/bin
-  local -a bin_helpers=(listenport)
+  local -a bin_helpers=(git-cleanup listenport)
   for f in "${bin_helpers[@]}"; do
     [ -f "$DOTFILES/bin/$f" ] && ln -sf "$DOTFILES/bin/$f" ~/.local/bin/"$f"
   done
   # Legacy symlinks (helpers removed or moved into dotfiles .zshrc)
-  rm -f ~/.local/bin/killport ~/.local/bin/npm-gh ~/.local/bin/awssso ~/.local/bin/git-cleanup ~/.local/bin/whatismyip
+  rm -f ~/.local/bin/killport ~/.local/bin/npm-gh ~/.local/bin/awssso ~/.local/bin/whatismyip
 
   configure_cursor_terminal_settings
 }
@@ -388,7 +388,7 @@ print_config_summary() {
   echo "    • Starship  ~/.config/starship.toml"
   echo "    • iTerm2    Default profile prefs (prompts before overwrite)"
   echo "    • Cursor    terminal settings only (prompts before overwrite)"
-  echo "    • Bin       listenport in ~/.local/bin"
+  echo "    • Bin       git-cleanup, listenport in ~/.local/bin"
   echo ""
   echo "  New files are created as needed. Existing files prompt before overwrite."
   echo ""

@@ -9,17 +9,7 @@ export PATH="$HOME/.local/bin:$PATH" # cursor agent
 
 alias ll='ls -lah'
 
-# === shell functions (short helpers; `listenport` stays in bin/) ===
-
-git-cleanup() {
-  local branch="${1:-main}"
-  git checkout "$branch" && git pull -p
-  local gone
-  gone=$(git branch -vv | grep ': gone]' | awk '{print $1}' | grep -vE '^(main|dev|master)$')
-  if [ -n "$gone" ]; then
-    echo "$gone" | xargs git branch -D
-  fi
-}
+# === shell functions (short helpers; bin/ scripts via ~/.local/bin — see install.sh) ===
 
 whatismyip() {
   local pub local_ip

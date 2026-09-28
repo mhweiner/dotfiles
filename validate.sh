@@ -7,6 +7,7 @@ cd "$ROOT"
 shell_files=(
   install.sh
   validate.sh
+  bin/git-cleanup
   bin/listenport
   tests/lib.sh
   tests/test_*.sh

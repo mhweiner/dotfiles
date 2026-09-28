@@ -15,6 +15,9 @@ DOTFILES_NO_PROMPTS=1 run_install_config >/dev/null 2>&1
 [[ -L "${FAKE_HOME}/.config/starship.toml" ]] || test_fail "expected ~/.config/starship.toml symlink"
 [[ "$(readlink "${FAKE_HOME}/.config/starship.toml")" == "${DOTFILES_DIR}/starship.toml" ]] || test_fail "expected starship.toml to point at dotfiles"
 
+[[ -L "${FAKE_HOME}/.local/bin/git-cleanup" ]] || test_fail "expected ~/.local/bin/git-cleanup symlink"
+[[ "$(readlink "${FAKE_HOME}/.local/bin/git-cleanup")" == "${DOTFILES_DIR}/bin/git-cleanup" ]] || test_fail "expected git-cleanup to point at dotfiles/bin/git-cleanup"
+
 [[ -L "${FAKE_HOME}/.local/bin/listenport" ]] || test_fail "expected ~/.local/bin/listenport symlink"
 [[ "$(readlink "${FAKE_HOME}/.local/bin/listenport")" == "${DOTFILES_DIR}/bin/listenport" ]] || test_fail "expected listenport to point at dotfiles/bin/listenport"
 
