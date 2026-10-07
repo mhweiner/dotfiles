@@ -75,7 +75,7 @@ if ((${#gone[@]} > 0)); then
       [[ -z "$wt_path" ]] && continue
       echo "git-cleanup: removing worktree $wt_path (branch $b)"
       if ! git worktree remove "$wt_path"; then
-        echo "git-cleanup: kept $wt_path and branch $b (uncommitted changes)" >&2
+        echo "git-cleanup: kept branch $b (could not remove $wt_path; see error above)" >&2
         kept=1
       fi
     done < <(worktree_paths_for_branch "$b")
