@@ -43,10 +43,8 @@ gone=()
 while IFS= read -r name; do
   [[ -n "$name" ]] && gone+=("$name")
 done < <(
-  git branch -vv |
-    grep ': gone]' |
-    awk '{print $1}' |
-    sed 's/^+//' |
+  git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads |
+    awk '$2 == "[gone]" {print $1}' |
     grep -vE '^(main|dev|master)$' || true
 )
 
@@ -69,18 +67,24 @@ worktree_paths_for_branch() {
   done < <(git worktree list --porcelain)
 }
 
+deletable=()
 if ((${#gone[@]} > 0)); then
   for b in "${gone[@]}"; do
+    kept=0
     while IFS= read -r wt_path; do
       [[ -z "$wt_path" ]] && continue
       echo "git-cleanup: removing worktree $wt_path (branch $b)"
-      git worktree remove "$wt_path" --force
+      if ! git worktree remove "$wt_path"; then
+        echo "git-cleanup: kept branch $b (could not remove $wt_path; see error above)" >&2
+        kept=1
+      fi
     done < <(worktree_paths_for_branch "$b")
+    ((kept)) || deletable+=("$b")
   done
 fi
 
 git worktree prune 2>/dev/null || true
 
-if ((${#gone[@]} > 0)); then
-  printf '%s\n' "${gone[@]}" | xargs git branch -D
+if ((${#deletable[@]} > 0)); then
+  git branch -D "${deletable[@]}"
 fi

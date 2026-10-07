@@ -48,7 +48,7 @@ Safe to rerun. You're prompted before installing packages. Skips what's already 
 |------|-------|------|
 | `listenport` | `bin/` | Port usage (`lsof`); **`-k <port>`** kills listeners. |
 | `ll` | `.zshrc` | Long listing (`ls -lah`): all entries, human sizes, dotfiles. |
-| `git-cleanup` | `bin/` | Checkout/pull on the **primary** worktree, **`git worktree prune`**, remove linked worktrees for **`: gone]`** branches, then delete those local branches (default **`main`**). |
+| `git-cleanup` | `bin/` | Checkout/pull on the **primary** worktree, **`git worktree prune`**, remove linked worktrees for **`: gone]`** branches (keeps any it cannot remove cleanly, such as ones with uncommitted changes, and their branch), then delete those local branches (default **`main`**). |
 | `whatismyip` | `.zshrc` | Print public and local IP. |
 | `npmgh` | `.zshrc` | **`npmgh install`**, **`npmgh ci`**, etc. — same as **`npm`** but sets **`GITHUB_TOKEN`** from **`gh auth token`** for **GitHub Packages** and ensures **`read:packages`** on **`gh`** when missing. Plain **`npm`** is not wrapped (so **`npm link`** never forces OAuth). |
 | `awssso` | `.zshrc` | **`aws sso login`**, then **`export AWS_PROFILE`**. |

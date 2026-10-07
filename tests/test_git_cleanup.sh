@@ -50,3 +50,31 @@ if git branch --list feature/wt | grep -q feature/wt; then
 fi
 
 test_pass "git-cleanup prunes stale worktrees and deletes gone branches"
+
+# Live linked worktrees: `git branch -vv` marks these branches with "+ ".
+live_wt="${TMP_DIR}/repo-live"
+dirty_wt="${TMP_DIR}/repo-dirty"
+for b in feature/live feature/dirty; do
+  git -C "${repo}" branch "${b}"
+  git -C "${repo}" push -u origin "${b}"
+done
+git -C "${repo}" worktree add "${live_wt}" feature/live
+git -C "${repo}" worktree add "${dirty_wt}" feature/dirty
+echo wip >>"${dirty_wt}/README"
+for b in feature/live feature/dirty; do
+  git -C "${repo}" push origin --delete "${b}"
+done
+
+"${GIT_CLEANUP}" main
+
+[[ ! -d "${live_wt}" ]] || test_fail "expected clean live worktree to be removed"
+if git branch --list feature/live | grep -q feature/live; then
+  test_fail "expected local feature/live branch to be deleted"
+fi
+
+[[ -d "${dirty_wt}" ]] || test_fail "expected worktree with uncommitted changes to be kept"
+grep -q wip "${dirty_wt}/README" || test_fail "expected uncommitted changes to survive"
+git branch --list feature/dirty | grep -q feature/dirty ||
+  test_fail "expected branch of kept worktree to survive"
+
+test_pass "git-cleanup removes clean live worktrees and keeps dirty ones"
