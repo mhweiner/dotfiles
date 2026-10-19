@@ -75,10 +75,19 @@ if ((${#gone[@]} > 0)); then
       [[ -z "$wt_path" ]] && continue
       echo "git-cleanup: removing worktree $wt_path (branch $b)"
       # `node_modules/` ignores a directory, not a symlink to the primary checkout.
+      # Unlink it only when that symlink is the sole extra file, and put it back if removal fails.
+      link_target=""
       if [[ -L "$wt_path/node_modules" ]]; then
-        rm "$wt_path/node_modules"
+        dirty="$(git -C "$wt_path" status --porcelain)"
+        if [[ "$dirty" == "?? node_modules" ]]; then
+          link_target="$(readlink "$wt_path/node_modules")"
+          rm "$wt_path/node_modules"
+        fi
       fi
       if ! git worktree remove "$wt_path"; then
+        if [[ -n "$link_target" && ! -e "$wt_path/node_modules" ]]; then
+          ln -s "$link_target" "$wt_path/node_modules"
+        fi
         echo "git-cleanup: kept branch $b (could not remove $wt_path; see error above)" >&2
         kept=1
       elif [[ -d "$wt_path" ]]; then

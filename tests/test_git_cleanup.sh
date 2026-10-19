@@ -105,3 +105,24 @@ if git branch --list feature/link | grep -q feature/link; then
 fi
 
 test_pass "git-cleanup removes worktrees whose only extra file is a node_modules symlink"
+
+dirty_link_wt="${TMP_DIR}/repo-dirty-link"
+dirty_link_target="${TMP_DIR}/dirty-link-target"
+mkdir -p "${dirty_link_target}"
+echo keep >"${dirty_link_target}/keep.txt"
+git -C "${repo}" branch feature/dirty-link
+git -C "${repo}" push -u origin feature/dirty-link
+git -C "${repo}" worktree add "${dirty_link_wt}" feature/dirty-link
+ln -s "${dirty_link_target}" "${dirty_link_wt}/node_modules"
+echo wip >>"${dirty_link_wt}/README"
+git -C "${repo}" push origin --delete feature/dirty-link
+
+"${GIT_CLEANUP}" main
+
+[[ -L "${dirty_link_wt}/node_modules" ]] || test_fail "expected node_modules symlink to survive a dirty worktree"
+[[ -f "${dirty_link_target}/keep.txt" ]] || test_fail "expected dirty-worktree symlink target to survive"
+grep -q wip "${dirty_link_wt}/README" || test_fail "expected dirty worktree edits to survive"
+git branch --list feature/dirty-link | grep -q feature/dirty-link ||
+  test_fail "expected dirty linked branch to survive"
+
+test_pass "git-cleanup keeps a node_modules symlink when the worktree has other changes"
