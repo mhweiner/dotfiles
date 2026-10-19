@@ -74,9 +74,15 @@ if ((${#gone[@]} > 0)); then
     while IFS= read -r wt_path; do
       [[ -z "$wt_path" ]] && continue
       echo "git-cleanup: removing worktree $wt_path (branch $b)"
+      # `node_modules/` ignores a directory, not a symlink to the primary checkout.
+      if [[ -L "$wt_path/node_modules" ]]; then
+        rm "$wt_path/node_modules"
+      fi
       if ! git worktree remove "$wt_path"; then
         echo "git-cleanup: kept branch $b (could not remove $wt_path; see error above)" >&2
         kept=1
+      elif [[ -d "$wt_path" ]]; then
+        rm -rf "$wt_path"
       fi
     done < <(worktree_paths_for_branch "$b")
     ((kept)) || deletable+=("$b")
