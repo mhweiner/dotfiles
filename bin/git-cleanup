@@ -4,16 +4,40 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: git-cleanup [branch]" >&2
+  echo "Usage: git-cleanup [--force] [branch]" >&2
   echo "  Default branch: main" >&2
+  echo "  --force  also remove gone-branch worktrees with tracked local edits" >&2
 }
 
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-  usage
-  exit 0
-fi
-
-branch="${1:-main}"
+force=0
+branch=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    --force)
+      force=1
+      shift
+      ;;
+    -*)
+      echo "git-cleanup: unknown option: $1" >&2
+      usage
+      exit 1
+      ;;
+    *)
+      if [[ -n "$branch" ]]; then
+        echo "git-cleanup: unexpected argument: $1" >&2
+        usage
+        exit 1
+      fi
+      branch="$1"
+      shift
+      ;;
+  esac
+done
+branch="${branch:-main}"
 
 if ! git rev-parse --git-dir >/dev/null 2>&1; then
   echo "git-cleanup: not a git repository" >&2
@@ -67,31 +91,48 @@ worktree_paths_for_branch() {
   done < <(git worktree list --porcelain)
 }
 
+# Tracked edits (not ?? / !!). Untracked or ignored-only dirt is safe to force-remove.
+worktree_has_tracked_changes() {
+  local wt_path="$1"
+  local line
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    case "$line" in
+      \?\?\ * |\!\!\ *) ;;
+      *) return 0 ;;
+    esac
+  done < <(git -C "$wt_path" status --porcelain --untracked-files=all)
+  return 1
+}
+
+remove_worktree_path() {
+  local wt_path="$1"
+  local b="$2"
+
+  echo "git-cleanup: removing worktree $wt_path (branch $b)"
+  if git worktree remove --force "$wt_path"; then
+    if [[ -d "$wt_path" ]]; then
+      rm -rf "$wt_path"
+    fi
+    return 0
+  fi
+  echo "git-cleanup: kept branch $b (could not remove $wt_path; see error above)" >&2
+  return 1
+}
+
 deletable=()
 if ((${#gone[@]} > 0)); then
   for b in "${gone[@]}"; do
     kept=0
     while IFS= read -r wt_path; do
       [[ -z "$wt_path" ]] && continue
-      echo "git-cleanup: removing worktree $wt_path (branch $b)"
-      # `node_modules/` ignores a directory, not a symlink to the primary checkout.
-      # Unlink it only when that symlink is the sole extra file, and put it back if removal fails.
-      link_target=""
-      if [[ -L "$wt_path/node_modules" ]]; then
-        dirty="$(git -C "$wt_path" status --porcelain)"
-        if [[ "$dirty" == "?? node_modules" ]]; then
-          link_target="$(readlink "$wt_path/node_modules")"
-          rm "$wt_path/node_modules"
-        fi
-      fi
-      if ! git worktree remove "$wt_path"; then
-        if [[ -n "$link_target" && ! -e "$wt_path/node_modules" ]]; then
-          ln -s "$link_target" "$wt_path/node_modules"
-        fi
-        echo "git-cleanup: kept branch $b (could not remove $wt_path; see error above)" >&2
+      if ((force)); then
+        remove_worktree_path "$wt_path" "$b" || kept=1
+      elif worktree_has_tracked_changes "$wt_path"; then
+        echo "git-cleanup: kept branch $b (tracked changes in $wt_path; pass --force to delete)" >&2
         kept=1
-      elif [[ -d "$wt_path" ]]; then
-        rm -rf "$wt_path"
+      else
+        remove_worktree_path "$wt_path" "$b" || kept=1
       fi
     done < <(worktree_paths_for_branch "$b")
     ((kept)) || deletable+=("$b")
