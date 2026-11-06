@@ -162,26 +162,3 @@ if git branch --list feature/force | grep -q feature/force; then
 fi
 
 test_pass "git-cleanup --force removes dirty worktrees for gone branches"
-
-# Husk dirs: same parent as the primary, no .git, not a registered worktree.
-# Nested git repos and top-level files must survive (not every sibling is a husk).
-husk="${TMP_DIR}/husk-cache"
-keep_nested="${TMP_DIR}/keep-nested"
-keep_file="${TMP_DIR}/keep-file"
-keep_empty="${TMP_DIR}/keep-empty"
-mkdir -p "${husk}/.cache" "${husk}/build"
-echo x >"${husk}/.cache/x"
-mkdir -p "${keep_nested}/child"
-git -C "${keep_nested}/child" init -b main >/dev/null
-mkdir -p "${keep_file}"
-echo notes >"${keep_file}/README"
-mkdir -p "${keep_empty}"
-
-"${GIT_CLEANUP}" main
-
-[[ ! -e "${husk}" ]] || test_fail "expected sibling husk without .git to be removed"
-[[ -d "${keep_nested}/child/.git" ]] || test_fail "expected sibling with nested git repo to survive"
-[[ -f "${keep_file}/README" ]] || test_fail "expected sibling with top-level files to survive"
-[[ -d "${keep_empty}" ]] || test_fail "expected empty sibling directory to survive"
-
-test_pass "git-cleanup removes sibling husk directories safely"

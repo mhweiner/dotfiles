@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Checkout default branch, pull --prune, drop linked worktrees for merged branches,
-# prune stale worktree metadata, delete local branches whose upstream is gone,
-# and remove leftover sibling husk directories.
+# prune stale worktree metadata, delete local branches whose upstream is gone.
 set -euo pipefail
 
 usage() {
@@ -106,48 +105,6 @@ worktree_has_tracked_changes() {
   return 1
 }
 
-is_registered_worktree() {
-  local candidate="$1"
-  local wt_path=""
-  while IFS= read -r line || [[ -n "$line" ]]; do
-    if [[ "$line" == worktree* ]]; then
-      wt_path="${line#worktree }"
-      if [[ "$wt_path" == "$candidate" ]]; then
-        return 0
-      fi
-    fi
-  done < <(git worktree list --porcelain)
-  return 1
-}
-
-# Sibling of the primary with no .git, no nested git repo, and no top-level files.
-# Protects real sibling checkouts (nested repos) and loose data dirs (top-level files).
-is_husk_dir() {
-  local dir="$1"
-  local entry
-
-  [[ -d "$dir" ]] || return 1
-  [[ ! -e "$dir/.git" ]] || return 1
-
-  # Empty dirs are not husks — only leftover trees with content.
-  if [[ -z "$(find "$dir" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then
-    return 1
-  fi
-
-  if find "$dir" -mindepth 2 -name .git -print -quit 2>/dev/null | grep -q .; then
-    return 1
-  fi
-
-  while IFS= read -r entry; do
-    [[ -z "$entry" ]] && continue
-    if [[ -f "$entry" || -L "$entry" ]]; then
-      return 1
-    fi
-  done < <(find "$dir" -mindepth 1 -maxdepth 1 -print 2>/dev/null)
-
-  return 0
-}
-
 remove_worktree_path() {
   local wt_path="$1"
   local b="$2"
@@ -187,19 +144,3 @@ git worktree prune 2>/dev/null || true
 if ((${#deletable[@]} > 0)); then
   git branch -D "${deletable[@]}"
 fi
-
-# Drop leftover dirs next to the primary that are not worktrees and are not real projects.
-primary_parent="$(dirname "$primary")"
-shopt -s nullglob
-for candidate in "${primary_parent}"/*; do
-  [[ -d "$candidate" ]] || continue
-  [[ "$candidate" == "$primary" ]] && continue
-  if is_registered_worktree "$candidate"; then
-    continue
-  fi
-  if is_husk_dir "$candidate"; then
-    echo "git-cleanup: removing husk $candidate"
-    rm -rf "$candidate"
-  fi
-done
-shopt -u nullglob
