@@ -1,19 +1,44 @@
 #!/usr/bin/env bash
 # Checkout default branch, pull --prune, drop linked worktrees for merged branches,
-# prune stale worktree metadata, delete local branches whose upstream is gone.
+# prune stale worktree metadata, delete local branches whose upstream is gone,
+# and remove leftover sibling husk directories.
 set -euo pipefail
 
 usage() {
-  echo "Usage: git-cleanup [branch]" >&2
+  echo "Usage: git-cleanup [--force] [branch]" >&2
   echo "  Default branch: main" >&2
+  echo "  --force  also remove gone-branch worktrees with tracked local edits" >&2
 }
 
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-  usage
-  exit 0
-fi
-
-branch="${1:-main}"
+force=0
+branch=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    --force)
+      force=1
+      shift
+      ;;
+    -*)
+      echo "git-cleanup: unknown option: $1" >&2
+      usage
+      exit 1
+      ;;
+    *)
+      if [[ -n "$branch" ]]; then
+        echo "git-cleanup: unexpected argument: $1" >&2
+        usage
+        exit 1
+      fi
+      branch="$1"
+      shift
+      ;;
+  esac
+done
+branch="${branch:-main}"
 
 if ! git rev-parse --git-dir >/dev/null 2>&1; then
   echo "git-cleanup: not a git repository" >&2
@@ -67,31 +92,90 @@ worktree_paths_for_branch() {
   done < <(git worktree list --porcelain)
 }
 
+# Tracked edits (not ?? / !!). Untracked or ignored-only dirt is safe to force-remove.
+worktree_has_tracked_changes() {
+  local wt_path="$1"
+  local line
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    case "$line" in
+      \?\?\ * |\!\!\ *) ;;
+      *) return 0 ;;
+    esac
+  done < <(git -C "$wt_path" status --porcelain --untracked-files=all)
+  return 1
+}
+
+is_registered_worktree() {
+  local candidate="$1"
+  local wt_path=""
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ "$line" == worktree* ]]; then
+      wt_path="${line#worktree }"
+      if [[ "$wt_path" == "$candidate" ]]; then
+        return 0
+      fi
+    fi
+  done < <(git worktree list --porcelain)
+  return 1
+}
+
+# Sibling of the primary with no .git, no nested git repo, and no top-level files.
+# Protects real sibling checkouts (nested repos) and loose data dirs (top-level files).
+is_husk_dir() {
+  local dir="$1"
+  local entry
+
+  [[ -d "$dir" ]] || return 1
+  [[ ! -e "$dir/.git" ]] || return 1
+
+  # Empty dirs are not husks — only leftover trees with content.
+  if [[ -z "$(find "$dir" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then
+    return 1
+  fi
+
+  if find "$dir" -mindepth 2 -name .git -print -quit 2>/dev/null | grep -q .; then
+    return 1
+  fi
+
+  while IFS= read -r entry; do
+    [[ -z "$entry" ]] && continue
+    if [[ -f "$entry" || -L "$entry" ]]; then
+      return 1
+    fi
+  done < <(find "$dir" -mindepth 1 -maxdepth 1 -print 2>/dev/null)
+
+  return 0
+}
+
+remove_worktree_path() {
+  local wt_path="$1"
+  local b="$2"
+
+  echo "git-cleanup: removing worktree $wt_path (branch $b)"
+  if git worktree remove --force "$wt_path"; then
+    if [[ -d "$wt_path" ]]; then
+      rm -rf "$wt_path"
+    fi
+    return 0
+  fi
+  echo "git-cleanup: kept branch $b (could not remove $wt_path; see error above)" >&2
+  return 1
+}
+
 deletable=()
 if ((${#gone[@]} > 0)); then
   for b in "${gone[@]}"; do
     kept=0
     while IFS= read -r wt_path; do
       [[ -z "$wt_path" ]] && continue
-      echo "git-cleanup: removing worktree $wt_path (branch $b)"
-      # `node_modules/` ignores a directory, not a symlink to the primary checkout.
-      # Unlink it only when that symlink is the sole extra file, and put it back if removal fails.
-      link_target=""
-      if [[ -L "$wt_path/node_modules" ]]; then
-        dirty="$(git -C "$wt_path" status --porcelain)"
-        if [[ "$dirty" == "?? node_modules" ]]; then
-          link_target="$(readlink "$wt_path/node_modules")"
-          rm "$wt_path/node_modules"
-        fi
-      fi
-      if ! git worktree remove "$wt_path"; then
-        if [[ -n "$link_target" && ! -e "$wt_path/node_modules" ]]; then
-          ln -s "$link_target" "$wt_path/node_modules"
-        fi
-        echo "git-cleanup: kept branch $b (could not remove $wt_path; see error above)" >&2
+      if ((force)); then
+        remove_worktree_path "$wt_path" "$b" || kept=1
+      elif worktree_has_tracked_changes "$wt_path"; then
+        echo "git-cleanup: kept branch $b (tracked changes in $wt_path; pass --force to delete)" >&2
         kept=1
-      elif [[ -d "$wt_path" ]]; then
-        rm -rf "$wt_path"
+      else
+        remove_worktree_path "$wt_path" "$b" || kept=1
       fi
     done < <(worktree_paths_for_branch "$b")
     ((kept)) || deletable+=("$b")
@@ -103,3 +187,19 @@ git worktree prune 2>/dev/null || true
 if ((${#deletable[@]} > 0)); then
   git branch -D "${deletable[@]}"
 fi
+
+# Drop leftover dirs next to the primary that are not worktrees and are not real projects.
+primary_parent="$(dirname "$primary")"
+shopt -s nullglob
+for candidate in "${primary_parent}"/*; do
+  [[ -d "$candidate" ]] || continue
+  [[ "$candidate" == "$primary" ]] && continue
+  if is_registered_worktree "$candidate"; then
+    continue
+  fi
+  if is_husk_dir "$candidate"; then
+    echo "git-cleanup: removing husk $candidate"
+    rm -rf "$candidate"
+  fi
+done
+shopt -u nullglob

@@ -126,3 +126,62 @@ git branch --list feature/dirty-link | grep -q feature/dirty-link ||
   test_fail "expected dirty linked branch to survive"
 
 test_pass "git-cleanup keeps a node_modules symlink when the worktree has other changes"
+
+# Untracked-only dirt (not a special-cased path) should still be removable for gone branches.
+untracked_wt="${TMP_DIR}/repo-untracked"
+git -C "${repo}" branch feature/untracked
+git -C "${repo}" push -u origin feature/untracked
+git -C "${repo}" worktree add "${untracked_wt}" feature/untracked
+echo scratch >"${untracked_wt}/scratch.txt"
+mkdir -p "${untracked_wt}/.cache"
+echo blob >"${untracked_wt}/.cache/x"
+git -C "${repo}" push origin --delete feature/untracked
+
+"${GIT_CLEANUP}" main
+
+[[ ! -e "${untracked_wt}" ]] || test_fail "expected worktree with only untracked files to be removed"
+if git branch --list feature/untracked | grep -q feature/untracked; then
+  test_fail "expected local feature/untracked branch to be deleted"
+fi
+
+test_pass "git-cleanup removes worktrees whose dirt is only untracked"
+
+# --force drops tracked dirty worktrees for gone branches.
+force_wt="${TMP_DIR}/repo-force"
+git -C "${repo}" branch feature/force
+git -C "${repo}" push -u origin feature/force
+git -C "${repo}" worktree add "${force_wt}" feature/force
+echo wip >>"${force_wt}/README"
+git -C "${repo}" push origin --delete feature/force
+
+"${GIT_CLEANUP}" --force main
+
+[[ ! -e "${force_wt}" ]] || test_fail "expected --force to remove a dirty worktree"
+if git branch --list feature/force | grep -q feature/force; then
+  test_fail "expected local feature/force branch to be deleted"
+fi
+
+test_pass "git-cleanup --force removes dirty worktrees for gone branches"
+
+# Husk dirs: same parent as the primary, no .git, not a registered worktree.
+# Nested git repos and top-level files must survive (not every sibling is a husk).
+husk="${TMP_DIR}/husk-cache"
+keep_nested="${TMP_DIR}/keep-nested"
+keep_file="${TMP_DIR}/keep-file"
+keep_empty="${TMP_DIR}/keep-empty"
+mkdir -p "${husk}/.cache" "${husk}/build"
+echo x >"${husk}/.cache/x"
+mkdir -p "${keep_nested}/child"
+git -C "${keep_nested}/child" init -b main >/dev/null
+mkdir -p "${keep_file}"
+echo notes >"${keep_file}/README"
+mkdir -p "${keep_empty}"
+
+"${GIT_CLEANUP}" main
+
+[[ ! -e "${husk}" ]] || test_fail "expected sibling husk without .git to be removed"
+[[ -d "${keep_nested}/child/.git" ]] || test_fail "expected sibling with nested git repo to survive"
+[[ -f "${keep_file}/README" ]] || test_fail "expected sibling with top-level files to survive"
+[[ -d "${keep_empty}" ]] || test_fail "expected empty sibling directory to survive"
+
+test_pass "git-cleanup removes sibling husk directories safely"
