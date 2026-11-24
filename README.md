@@ -1,16 +1,21 @@
 # ✨ dotfiles
 
-Personal macOS terminal setup: shell config, prompt, common CLI tools, and small helpers.
+Personal macOS + Arch Linux terminal setup: shell config, prompt, common CLI tools, and small helpers.
 
 
-## Requirements 🍎
+## Requirements
 
-- macOS
+**macOS** 🍎
+
 - [Xcode Command Line Tools](https://developer.apple.com/documentation/xcode/installing-the-command-line-tools) (includes `git`)
 
 ```bash
 xcode-select --install
 ```
+
+**Arch Linux** 🐧
+
+- `git` and `sudo` (`pacman` handles the rest)
 
 
 ## First-time setup 🚀
@@ -41,6 +46,8 @@ After install, quit and reopen **iTerm2** so it reloads preferences.
 
 Safe to rerun. You're prompted before installing packages. Skips what's already installed; Node LTS only if `node` is missing.
 
+**On Arch Linux:** packages install via `pacman` (`zsh`, `starship`, `github-cli`, `ttf-hack-nerd`) instead of Homebrew — no iTerm2/Cursor/font casks, and no `~/Library` config steps. After wiring config, install offers to `chsh` your login shell to `zsh`. Pair with any terminal (e.g. `kitty`) set to **Hack Nerd Font Mono**.
+
 
 ## Helpers 🧪
 
@@ -70,11 +77,12 @@ You'll be prompted first if you want to install these.
 1. Adds an idempotent `source ~/dotfiles/.zshrc` block to `~/.zshrc`.
 2. Symlinks `~/.vimrc` → `~/dotfiles/vimrc` (prompts if you already have one).
 3. Symlinks `~/.config/starship.toml` → `~/dotfiles/starship.toml`.
-4. Copies iTerm2 template to `~/Library/Preferences/`; migrates legacy custom-folder setups; sanitizes live prefs.
-5. Symlinks `bin/` scripts into `~/.local/bin`; removes obsolete helper symlinks.
-6. Merges Cursor terminal keys into `settings.json` (prompts if yours differ).
+4. Symlinks `bin/` scripts into `~/.local/bin`; removes obsolete helper symlinks.
+5. *(macOS)* Copies iTerm2 template to `~/Library/Preferences/`; migrates legacy custom-folder setups; sanitizes live prefs.
+6. *(macOS)* Merges Cursor terminal keys into `settings.json` (prompts if yours differ).
+7. *(Linux)* Offers to change your login shell to `zsh` (`chsh`).
 
-Quit and reopen **iTerm2** (and Cursor if you changed terminal settings).
+On macOS, quit and reopen **iTerm2** (and Cursor if you changed terminal settings). On Linux, log out and back in.
 
 ## Where to edit things 📝
 

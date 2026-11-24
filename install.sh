@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Idempotent: safe to re-run on an already-configured Mac.
+# Idempotent: safe to re-run on an already-configured Mac or Arch Linux machine.
 # Single entrypoint for package bootstrap + config wiring.
 set -euo pipefail
 
@@ -10,6 +10,11 @@ NVM_VERSION="v0.40.1"
 APPLICATIONS_DIR="${APPLICATIONS_DIR:-/Applications}"
 MARK_BEGIN='>>> dotfiles BEGIN'
 MARK_END='<<< dotfiles END'
+
+UNAME_S="$(uname -s)"
+
+is_macos() { [[ "${UNAME_S}" == "Darwin" ]]; }
+is_linux() { [[ "${UNAME_S}" == "Linux" ]]; }
 
 realpath_file() {
   python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "$1" 2>/dev/null || echo "$1"
@@ -101,7 +106,25 @@ brew_install_cask() {
   fi
 }
 
-install_packages() {
+install_nvm_node() {
+  if [ ! -s "$HOME/.nvm/nvm.sh" ]; then
+    echo "  Installing nvm..."
+    curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" | bash
+  else
+    echo "  nvm already installed"
+  fi
+  export NVM_DIR="$HOME/.nvm"
+  # shellcheck source=/dev/null
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  if ! command -v node &>/dev/null; then
+    echo "  Installing Node (LTS)..."
+    nvm install --lts
+  else
+    echo "  Node already installed ($(node -v))"
+  fi
+}
+
+install_packages_macos() {
   if ! command -v git &>/dev/null; then
     echo "  Git is not installed. Run: xcode-select --install"
     echo "  Then re-run this script."
@@ -128,20 +151,28 @@ install_packages() {
   brew_install_formula awscli
   brew_install_formula logfoxai/tap/open-prs
 
-  if [ ! -s "$HOME/.nvm/nvm.sh" ]; then
-    echo "  Installing nvm..."
-    curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" | bash
+  install_nvm_node
+}
+
+install_packages_linux() {
+  if command -v pacman &>/dev/null; then
+    echo "  Arch Linux detected. Packages via pacman (skipped if already present)..."
+    sudo pacman -S --needed --noconfirm zsh starship git github-cli ttf-hack-nerd
   else
-    echo "  nvm already installed"
+    echo "  Linux without pacman detected."
+    echo "  Install zsh, starship, and a Nerd Font with your package manager, then re-run."
   fi
-  export NVM_DIR="$HOME/.nvm"
-  # shellcheck source=/dev/null
-  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-  if ! command -v node &>/dev/null; then
-    echo "  Installing Node (LTS)..."
-    nvm install --lts
+
+  install_nvm_node
+}
+
+install_packages() {
+  if is_macos; then
+    install_packages_macos
+  elif is_linux; then
+    install_packages_linux
   else
-    echo "  Node already installed ($(node -v))"
+    echo "  Unsupported OS: ${UNAME_S}. Skipping package bootstrap."
   fi
 }
 
@@ -368,8 +399,6 @@ install_config() {
   mkdir -p ~/.config
   ln -sf "$DOTFILES/starship.toml" ~/.config/starship.toml
 
-  configure_iterm2_prefs
-
   mkdir -p ~/.local/bin
   local -a bin_helpers=(git-cleanup listenport)
   for f in "${bin_helpers[@]}"; do
@@ -378,7 +407,21 @@ install_config() {
   # Legacy symlinks (helpers removed or moved into dotfiles .zshrc)
   rm -f ~/.local/bin/killport ~/.local/bin/npm-gh ~/.local/bin/awssso ~/.local/bin/whatismyip
 
-  configure_cursor_terminal_settings
+  if is_macos; then
+    configure_iterm2_prefs
+    configure_cursor_terminal_settings
+  fi
+}
+
+offer_chsh_zsh_linux() {
+  is_linux || return 0
+  command -v zsh &>/dev/null || return 0
+  local zsh_path
+  zsh_path="$(command -v zsh)"
+  [[ "${SHELL:-}" == "${zsh_path}" ]] && return 0
+  if prompt_yes_no "  Change default shell to zsh (${zsh_path})?"; then
+    chsh -s "${zsh_path}" || echo "  chsh failed. Run manually: chsh -s ${zsh_path}"
+  fi
 }
 
 print_config_summary() {
@@ -386,8 +429,10 @@ print_config_summary() {
   echo "    • Shell     ~/.zshrc sources this repo — PATH, Starship, nvm, helpers"
   echo "    • Vim       ~/.vimrc → dotfiles/vimrc (prompts if you already have one)"
   echo "    • Starship  ~/.config/starship.toml"
-  echo "    • iTerm2    Default profile prefs (prompts before overwrite)"
-  echo "    • Cursor    terminal settings only (prompts before overwrite)"
+  if is_macos; then
+    echo "    • iTerm2    Default profile prefs (prompts before overwrite)"
+    echo "    • Cursor    terminal settings only (prompts before overwrite)"
+  fi
   echo "    • Bin       git-cleanup, listenport in ~/.local/bin"
   echo ""
   echo "  New files are created as needed. Existing files prompt before overwrite."
@@ -398,8 +443,14 @@ echo ""
 echo "  ✨ dotfiles setup"
 echo ""
 
+if is_macos; then
+  PACKAGE_PROMPT="  Install Homebrew packages (iTerm2, Cursor, fonts, CLI tools, nvm/Node)?"
+else
+  PACKAGE_PROMPT="  Install packages (zsh, starship, Nerd Font, CLI tools, nvm/Node)?"
+fi
+
 if [[ "${DOTFILES_SKIP_PACKAGE_PROMPT:-0}" != "1" ]]; then
-  if prompt_yes_no "  Install Homebrew packages (iTerm2, Cursor, fonts, CLI tools, nvm/Node)?"; then
+  if prompt_yes_no "${PACKAGE_PROMPT}"; then
     install_packages
   else
     echo "  Skipping package bootstrap"
@@ -414,11 +465,17 @@ print_config_summary
 
 if [[ "${DOTFILES_SKIP_CONFIG_PROMPT:-0}" == "1" ]]; then
   install_config
+  offer_chsh_zsh_linux
 elif prompt_yes_no "  Apply dotfiles config (items above)?"; then
   install_config
+  offer_chsh_zsh_linux
 else
   echo "  Skipping config"
 fi
 
 echo ""
-echo "  Done. Quit and reopen iTerm2/Cursor to use your new setup."
+if is_macos; then
+  echo "  Done. Quit and reopen iTerm2/Cursor to use your new setup."
+else
+  echo "  Done. Log out and back in to use your new setup."
+fi
